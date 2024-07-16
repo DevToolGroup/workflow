@@ -1,85 +1,85 @@
+/*
+ * WorkFlow is a fully functional, non BPMN, lightweight process engine framework developed in Java language, which can be embedded in Java applications and run as a service in servers or clusters.
+ *
+ * License: GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007
+ * See the license.txt file in the root directory or see <http://www.gnu.org/licenses/>.
+ */
 package group.devtool.workflow.impl;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import group.devtool.workflow.core.exception.WorkFlowException;
+import group.devtool.workflow.engine.WorkFlowContext;
+import group.devtool.workflow.engine.exception.NotFoundWorkFlowVariable;
+import group.devtool.workflow.engine.exception.NotUserTaskPermission;
+import group.devtool.workflow.impl.runtime.*;
 import org.junit.Assert;
 import org.junit.Test;
 
-import group.devtool.workflow.core.TaskWorkFlowNodeDefinition.JavaTaskConfig;
-import group.devtool.workflow.core.UserWorkFlowTask.WorkFlowUserTaskConfig;
-import group.devtool.workflow.core.WorkFlowContext;
-import group.devtool.workflow.core.WorkFlowTaskJavaDelegate;
-import group.devtool.workflow.core.WorkFlowVariable;
-import group.devtool.workflow.impl.TaskWorkFlowNodeDefinitionImpl.JavaTaskConfigImpl;
-import group.devtool.workflow.impl.UserWorkFlowTaskImpl.MybatisWorkFlowUserTaskConfig;
+import group.devtool.workflow.engine.runtime.UserWorkFlowTask.UserWorkFlowTaskConfig;
+import group.devtool.workflow.engine.WorkFlowContextImpl;
+import group.devtool.workflow.engine.runtime.WorkFlowTaskJavaDelegate;
+import group.devtool.workflow.engine.WorkFlowVariable;
+import group.devtool.workflow.impl.runtime.UserWorkFlowTaskImpl.UserWorkFlowTaskConfigImpl;
 
-public class WorkFlowTaskTest extends WorkFlowBeforeTest {
+public class WorkFlowTaskTest extends InitWorkFlowConfig {
 
   @Test
-  public void testStart() throws WorkFlowException {
-    WorkFlowContext context = new WorkFlowContext("start");
-    context.localVariable(WorkFlowVariable.suspend(WorkFlowVariable.USER, "admin"));
-		StartWorkFlowTaskImpl task = new StartWorkFlowTaskImpl("start", "start", "start");
+  public void testStart() {
+    WorkFlowContextImpl context = new WorkFlowContextImpl("start", WorkFlowVariable.global(WorkFlowContext.USER, "admin"));
+		StartWorkFlowTaskImpl task = new StartWorkFlowTaskImpl("start", "start", "start", "start");
 		task.complete(context);
 		Assert.assertTrue(task.completed());
 	}
 
   @Test
-  public void testEnd() throws WorkFlowException {
-    WorkFlowContext context = new WorkFlowContext("end");
-		EndWorkFlowTaskImpl task = new EndWorkFlowTaskImpl("end", "end", "end");
+  public void testEnd() {
+    WorkFlowContextImpl context = new WorkFlowContextImpl("end");
+		EndWorkFlowTaskImpl task = new EndWorkFlowTaskImpl("end", "end", "end", "end");
 		task.complete(context);
 		Assert.assertTrue(task.completed());
 	}
 
   @Test
-  public void testChild() throws WorkFlowException {
-    WorkFlowContext context = new WorkFlowContext("child");
-		ChildWorkFlowTaskImpl task = new ChildWorkFlowTaskImpl("child", "child", "child");
+  public void testChild() {
+    WorkFlowContextImpl context = new WorkFlowContextImpl("child");
+		ChildWorkFlowTaskImpl task = new ChildWorkFlowTaskImpl("child", "child", "child", "child");
 		task.complete(context);
 		Assert.assertTrue(task.completed());
 	}
 
   @Test
-  public void testUser() throws WorkFlowException {
-    WorkFlowUserTaskConfig config = new MybatisWorkFlowUserTaskConfig("u1", List.of("u1"), 1);
-    WorkFlowContext context = new WorkFlowContext("child");
-		UserWorkFlowTaskImpl task = new UserWorkFlowTaskImpl("child", config, "child", "child");
+  public void testUser() {
+    UserWorkFlowTaskConfig config = new UserWorkFlowTaskConfigImpl("u1");
+    WorkFlowContextImpl context = new WorkFlowContextImpl("child");
+		UserWorkFlowTaskImpl task = new UserWorkFlowTaskImpl("child", "child",config, "child", "child");
 		// 缺少用户
-		Assert.assertThrows(WorkFlowException.class, () -> task.complete(context));
-		context.localVariable(WorkFlowVariable.suspend(WorkFlowVariable.USER, "admin"));
+		Assert.assertThrows(NotFoundWorkFlowVariable.class, () -> task.complete(context));
+		context.addRuntimeVariable(WorkFlowVariable.global(WorkFlowContext.USER, "admin"));
 		// 用户无权限
-		Assert.assertThrows(WorkFlowException.class, () -> task.complete(context));
-		context.localVariable(WorkFlowVariable.suspend(WorkFlowVariable.USER, "u1"));
+		Assert.assertThrows(NotUserTaskPermission.class, () -> task.complete(context));
+		context.addRuntimeVariable(WorkFlowVariable.global(WorkFlowContext.USER, "u1"));
+
 		task.complete(context);
 		Assert.assertTrue(task.completed());
 	}
 
   @SuppressWarnings("unchecked")
   @Test
-  public void testTask() throws WorkFlowException {
+  public void testTask() {
     String className = "group.devtool.workflow.impl.WorkFlowTaskTest$HelloWorldTask";
-    JavaTaskConfig config = new JavaTaskConfigImpl(className, false, "h");
-    WorkFlowContext context = new WorkFlowContext("child");
-		JavaWorkFlowTaskImpl task = new JavaWorkFlowTaskImpl("child", config, "child", "child");
+		JavaWorkFlowTaskImpl.JavaTaskWorkFlowTaskConfigImpl config = new JavaWorkFlowTaskImpl.JavaTaskWorkFlowTaskConfigImpl(className, false,"return");
+    WorkFlowContextImpl context = new WorkFlowContextImpl("child");
+		JavaWorkFlowTaskImpl task = new JavaWorkFlowTaskImpl("child", "child", config, "child", "child");
 		task.complete(context);
 		Assert.assertTrue(task.completed());
-		Map<String, String> output = (Map<String, String>) context.lookup("h");
-		Assert.assertEquals("hello world", output.get("output"));
+		Object output = context.lookup("return");
+		Assert.assertEquals("hello world", output);
 	}
 
   public static class HelloWorldTask implements WorkFlowTaskJavaDelegate {
 
     @Override
-    public Serializable apply(WorkFlowContext context) {
+    public String apply(WorkFlowContextImpl context) {
       System.out.println("call hello world java task");
-      HashMap<String, String> result = new HashMap<>();
-      result.put("output", "hello world");
-      return result;
+      return "hello world";
     }
 
   }

@@ -1,91 +1,89 @@
+/*
+ * WorkFlow is a fully functional, non BPMN, lightweight process engine framework developed in Java language, which can be embedded in Java applications and run as a service in servers or clusters.
+ *
+ * License: GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007
+ * See the license.txt file in the root directory or see <http://www.gnu.org/licenses/>.
+ */
 package group.devtool.workflow.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import group.devtool.workflow.core.exception.WorkFlowException;
+import group.devtool.workflow.engine.common.JacksonUtils;
+import group.devtool.workflow.engine.exception.WorkFlowException;
+import group.devtool.workflow.impl.entity.WorkFlowInstanceEntity;
+import group.devtool.workflow.impl.entity.WorkFlowNodeEntity;
+import group.devtool.workflow.impl.entity.WorkFlowTaskEntity;
+import group.devtool.workflow.impl.entity.WorkFlowVariableEntity;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class WorkFlowRepositoryTest extends WorkFlowBeforeTest {
+public class WorkFlowRepositoryTest extends InitWorkFlowConfig {
 
-  @Test
-  public void testBulkSaveVariable() {
+	@Test
+	public void testBulkSaveVariable() throws WorkFlowException {
 
-    List<WorkFlowVariableEntity> entities = new ArrayList<>();
-    entities.add(buildVariableEntity("test"));
-    try {
-      dbConfig.dbTransaction().doInTransaction(() -> {
-        dbConfig.repository().bulkSaveVariable(entities);
-        Assert.assertNotNull(entities.get(0).getId());
+		List<WorkFlowVariableEntity> entities = new ArrayList<>();
+		entities.add(buildVariableEntity("test"));
+		List<WorkFlowVariableEntity> variables = dbConfig.dbTransaction().doInTransaction(() -> {
+			dbConfig.repository().bulkSaveVariable(entities);
+			Assert.assertNotNull(entities.get(0).getId());
 
-        List<WorkFlowVariableEntity> variables = dbConfig.repository().loadVariable("test");
-				Assert.assertEquals(1, variables.size());
-        WorkFlowVariableEntity entity = variables.get(0);
+			return dbConfig.repository().loadVariable("test");
+		});
+		Assert.assertEquals(1, variables.size());
+		WorkFlowVariableEntity entity = variables.get(0);
 
-        Assert.assertEquals("a", entity.getName());
-        Assert.assertEquals("1", deserialize(entity.getValue()));
-        return true;
-      });
+		Assert.assertEquals("a", entity.getName());
+		Assert.assertEquals("1", deserialize(entity.getValue()));
+	}
 
-    } catch (Exception e) {
-      Assert.fail(e.getMessage());
-    }
-  }
+	@Test
+	public void testSaveAndGetInstance() throws WorkFlowException {
+		WorkFlowInstanceEntity entity = new WorkFlowInstanceEntity();
+		entity.setDefinitionCode("test");
+		entity.setRootDefinitionCode("test");
+		entity.setDefinitionVersion(1);
+		entity.setInstanceId("test1");
+		entity.setRootInstanceId("test1");
+		entity.setState("DOING");
+		entity.setScope("ROOT");
 
-  @Test
-  public void testSaveAndGetInstance() {
-    WorkFlowInstanceEntity entity = new WorkFlowInstanceEntity();
-    entity.setDefinitionCode("test");
-    entity.setDefinitionVersion(1);
-    entity.setInstanceId("test");
-    entity.setRootInstanceId("test");
-    entity.setState("DOING");
-		dbConfig.dbTransaction().doInTransaction(() -> {
+		WorkFlowInstanceEntity result = dbConfig.dbTransaction().doInTransaction(() -> {
 			dbConfig.repository().save(entity);
 			Assert.assertNotNull(entity.getId());
 
-			WorkFlowInstanceEntity insert = dbConfig.repository().getInstance("test", "test");
-			Assert.assertEquals(entity.getInstanceId(), insert.getInstanceId());
-			Assert.assertEquals(entity.getDefinitionCode(), insert.getDefinitionCode());
-			Assert.assertEquals(entity.getRootInstanceId(), insert.getRootInstanceId());
+			WorkFlowInstanceEntity insert = dbConfig.repository().loadInstance("test1", "test1");
 
-			insert.setState("DONE");
-			dbConfig.repository().save(insert);
-			WorkFlowInstanceEntity update = dbConfig.repository().getInstance("test", "test");
-			Assert.assertEquals(insert.getInstanceId(), update.getInstanceId());
-			Assert.assertEquals(insert.getDefinitionCode(), update.getDefinitionCode());
-			Assert.assertEquals(insert.getRootInstanceId(), update.getRootInstanceId());
-			Assert.assertEquals(insert.getState(), update.getState());
+			dbConfig.repository().changeInstanceComplete(insert.getInstanceId(), insert.getRootInstanceId());
+			return dbConfig.repository().loadInstance("test1", "test1");
 
-			return true;
 		});
+		Assert.assertEquals(entity.getInstanceId(), result.getInstanceId());
+		Assert.assertEquals(entity.getDefinitionCode(), result.getDefinitionCode());
+		Assert.assertEquals(entity.getRootInstanceId(), result.getRootInstanceId());
+		Assert.assertEquals("DONE", result.getState());
 	}
 
-  @Test
-  public void testSaveAndGetTask() {
-    List<WorkFlowTaskEntity> tasks = new ArrayList<>();
-    WorkFlowTaskEntity task = new WorkFlowTaskEntity();
-    task.setTaskId("taskId1");
-    task.setTaskClass("user");
-    task.setTaskState("DOING");
-    task.setConfig(serialize("user"));
-    task.setNodeCode("nodeCode1");
-    task.setNodeClass("user");
-    task.setNodeState("DOING");
-    task.setInstanceId("instanceId1");
-    task.setRootInstanceId("instanceId1");
-    tasks.add(task);
+	@Test
+	public void testSaveAndGetTask() throws WorkFlowException {
+		List<WorkFlowTaskEntity> tasks = new ArrayList<>();
+		WorkFlowTaskEntity task = new WorkFlowTaskEntity();
+		task.setTaskId("taskId1");
+		task.setTaskClass("user");
+		task.setTaskState("DOING");
+		task.setConfig(serialize("user"));
+		task.setNodeCode("nodeCode1");
+		task.setNodeId("nodeCode1");
+		task.setInstanceId("instanceId1");
+		task.setRootInstanceId("instanceId1");
+		tasks.add(task);
 		dbConfig.dbTransaction().doInTransaction(() -> {
 
 			dbConfig.repository().bulkSaveTask(tasks);
 			Assert.assertNotNull(task.getId());
 
-			List<WorkFlowTaskEntity> inserts = dbConfig.repository().getTaskByCode("nodeCode1", "instanceId1");
+			List<WorkFlowTaskEntity> inserts = dbConfig.repository().loadTaskByNodeId("nodeCode1", "instanceId1");
 			Assert.assertEquals(1, inserts.size());
 
 			Assert.assertEquals(task.getInstanceId(), inserts.get(0).getInstanceId());
@@ -93,96 +91,74 @@ public class WorkFlowRepositoryTest extends WorkFlowBeforeTest {
 			Assert.assertEquals(task.getTaskId(), inserts.get(0).getTaskId());
 			Assert.assertEquals(task.getTaskClass(), inserts.get(0).getTaskClass());
 			Assert.assertEquals(task.getTaskState(), inserts.get(0).getTaskState());
-			Assert.assertEquals(task.getNode().getNodeCode(), inserts.get(0).getNode().getNodeCode());
-			Assert.assertEquals(task.getNode().getNodeClass(), inserts.get(0).getNode().getNodeClass());
-			Assert.assertEquals(task.getNode().getNodeState(), inserts.get(0).getNode().getNodeState());
 
 			Assert.assertEquals("user", deserialize(inserts.get(0).getConfig()));
 			return true;
 		});
 	}
 
-  @Test
-  public void testChangeTaskComplete() {
-    List<WorkFlowTaskEntity> tasks = new ArrayList<>();
-    WorkFlowTaskEntity task = new WorkFlowTaskEntity();
-    task.setTaskId("taskId2");
-    task.setTaskClass("user");
-    task.setTaskState("DOING");
-    task.setConfig(serialize("user"));
-    task.setNodeCode("nodeCode2");
-    task.setNodeClass("user");
-    task.setNodeState("DOING");
-    task.setInstanceId("instanceId2");
-    task.setRootInstanceId("instanceId2");
-    tasks.add(task);
-    try {
-      dbConfig.dbTransaction().doInTransaction(() -> {
-
-        dbConfig.repository().bulkSaveTask(tasks);
-        dbConfig.repository().changeTaskComplete("admin", System.currentTimeMillis(), "taskId2", "instanceId2");
-        WorkFlowTaskEntity save = dbConfig.repository().getTaskById("taskId2", "instanceId2");
-        Assert.assertNull(save);
-        return true;
-      });
-    } catch (Exception e) {
-      e.printStackTrace();
-      Assert.fail(e.getMessage());
-    }
-  }
-
-  @Test
-  public void testChangeNodeComplete() {
-    List<WorkFlowTaskEntity> tasks = new ArrayList<>();
-    WorkFlowTaskEntity task = new WorkFlowTaskEntity();
-    task.setTaskId("taskId3");
-    task.setTaskClass("user");
-    task.setTaskState("DOING");
-    task.setConfig(serialize("user"));
-    task.setNodeCode("nodeCode3");
-    task.setNodeClass("user");
-    task.setNodeState("DOING");
-    task.setInstanceId("instanceId3");
-    task.setRootInstanceId("instanceId3");
-    tasks.add(task);
-		dbConfig.dbTransaction().doInTransaction(() -> {
+	@Test
+	public void testChangeTaskComplete() throws WorkFlowException {
+		List<WorkFlowTaskEntity> tasks = new ArrayList<>();
+		WorkFlowTaskEntity task = new WorkFlowTaskEntity();
+		task.setTaskId("taskId2");
+		task.setTaskClass("user");
+		task.setTaskState("DOING");
+		task.setConfig(serialize("user"));
+		task.setNodeId("nodeCode2");
+		task.setNodeCode("nodeCode2");
+		task.setInstanceId("instanceId2");
+		task.setRootInstanceId("instanceId2");
+		tasks.add(task);
+		WorkFlowTaskEntity result = dbConfig.dbTransaction().doInTransaction(() -> {
 
 			dbConfig.repository().bulkSaveTask(tasks);
+			dbConfig.repository().changeTaskComplete("admin", System.currentTimeMillis(), "taskId2", "instanceId2");
+			return dbConfig.repository().loadTaskById("taskId2", "instanceId2");
 
-			dbConfig.repository().changeNodeComplete("nodeCode3", "instanceId3");
-			List<WorkFlowTaskEntity> change = dbConfig.repository().getTaskByCode("nodeCode3", "instanceId3");
-
-			Assert.assertEquals(0, change.size());
-
-			return true;
 		});
+		Assert.assertNull(result);
+
 	}
 
-  private WorkFlowVariableEntity buildVariableEntity(String instanceId) {
-    WorkFlowVariableEntity entity = new WorkFlowVariableEntity();
-    entity.setRootInstanceId(instanceId);
-    entity.setName("a");
-    entity.setValue(serialize("1"));
-    entity.setNode("a");
-    return entity;
-  }
+	@Test
+	public void testChangeNodeComplete() throws WorkFlowException {
+		WorkFlowNodeEntity node = new WorkFlowNodeEntity();
+		node.setConfig(serialize("user"));
+		node.setNodeId("nodeCode3");
+		node.setNodeCode("nodeCode3");
+		node.setNodeClass("USER");
+		node.setNodeState("DOING");
+		node.setVersion(1);
+		node.setInstanceId("instanceId3");
+		node.setRootInstanceId("instanceId3");
 
-  public byte[] serialize(String string) {
-    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos)) {
-      oos.writeObject(string);
-      return bos.toByteArray();
-    } catch (Exception e) {
-      return null;
-    }
-  }
+		WorkFlowNodeEntity result = dbConfig.dbTransaction().doInTransaction(() -> {
 
-  public Object deserialize(byte[] config) {
-    try (ByteArrayInputStream bis = new ByteArrayInputStream(config);
-        ObjectInputStream ois = new ObjectInputStream(bis)) {
-      return ois.readObject();
-    } catch (Exception e) {
-      return null;
-    }
-  }
+			dbConfig.repository().save(node);
+
+			dbConfig.repository().changeNodeComplete("nodeCode3", "instanceId3", node.getVersion());
+			return dbConfig.repository().loadNode("nodeCode3", "instanceId3");
+		});
+
+		Assert.assertEquals("DONE", result.getNodeState());
+
+	}
+
+	private WorkFlowVariableEntity buildVariableEntity(String instanceId) {
+		WorkFlowVariableEntity entity = new WorkFlowVariableEntity();
+		entity.setRootInstanceId(instanceId);
+		entity.setName("a");
+		entity.setType("GLOBAL");
+		entity.setValue(serialize("1"));
+		return entity;
+	}
+
+	public String serialize(String string) {
+		return JacksonUtils.serialize(string);
+	}
+
+	public Object deserialize(String config) {
+		return JacksonUtils.deserialize(config, Object.class);
+	}
 }

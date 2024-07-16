@@ -1,141 +1,136 @@
+/*
+ * WorkFlow is a fully functional, non BPMN, lightweight process engine framework developed in Java language, which can be embedded in Java applications and run as a service in servers or clusters.
+ *
+ * License: GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007
+ * See the license.txt file in the root directory or see <http://www.gnu.org/licenses/>.
+ */
 package group.devtool.workflow.impl;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import group.devtool.workflow.core.WorkFlowDefinition;
-import group.devtool.workflow.core.WorkFlowLinkDefinition;
-import group.devtool.workflow.core.WorkFlowNodeDefinition;
-import group.devtool.workflow.core.ChildWorkFlowNodeDefinition.WorkFlowChildConfig;
-import group.devtool.workflow.core.DelayWorkFlowNodeDefinition.DelayTaskConfig;
-import group.devtool.workflow.core.MergeWorkFlowNodeDefinition.WorkFlowMergeStrategy;
-import group.devtool.workflow.core.TaskWorkFlowNodeDefinition.WorkFlowTaskConfig;
-import group.devtool.workflow.core.UserWorkFlowNodeDefinition.WorkFlowUserConfig;
-import group.devtool.workflow.core.exception.CastWorkFlowClassException;
-import group.devtool.workflow.core.exception.DeserializeException;
-import group.devtool.workflow.core.exception.WorkFlowException;
+import group.devtool.workflow.engine.common.JacksonUtils;
+import group.devtool.workflow.engine.definition.WorkFlowDefinition;
+import group.devtool.workflow.engine.definition.WorkFlowLinkDefinition;
+import group.devtool.workflow.engine.definition.WorkFlowNodeDefinition;
+import group.devtool.workflow.impl.definition.*;
+import group.devtool.workflow.impl.definition.UserWorkFlowNodeDefinitionImpl.UserWorkFlowConfigImpl;
+import group.devtool.workflow.impl.definition.TaskWorkFlowNodeDefinitionImpl.JavaTaskWorkFlowConfigImpl;
+import group.devtool.workflow.impl.definition.ChildWorkFlowNodeDefinitionImpl.ChildWorkFlowConfigImpl;
+import group.devtool.workflow.impl.definition.DelayWorkFlowNodeDefinitionImpl.JavaDelayWorkFlowConfigImpl;
+import group.devtool.workflow.impl.entity.WorkFlowDefinitionEntity;
+import group.devtool.workflow.impl.entity.WorkFlowLinkDefinitionEntity;
+import group.devtool.workflow.impl.entity.WorkFlowNodeDefinitionEntity;
 
+/**
+ * 流程定义工厂方法
+ */
 public class WorkFlowDefinitionFactory {
 
-  public static WorkFlowDefinitionFactory DEFINITION = new WorkFlowDefinitionFactory();
+	public static WorkFlowDefinitionFactory DEFINITION = new WorkFlowDefinitionFactory();
 
-  enum LinkFactory {
-    SPEL((entity) -> new SPELWorkFlowLinkDefinitionImpl(entity));
+	enum LinkFactory {
+		SPEL(SPELWorkFlowLinkDefinitionImpl::new);
 
 		private final LinkFunction init;
 
-    LinkFactory(LinkFunction init) {
-      this.init = init;
-    }
+		LinkFactory(LinkFunction init) {
+			this.init = init;
+		}
 
-    public WorkFlowLinkDefinition apply(WorkFlowLinkDefinitionEntity entity) throws WorkFlowException {
-      return init.apply(entity);
-    }
-  }
+		public WorkFlowLinkDefinition apply(WorkFlowLinkDefinitionEntity entity) {
+			return init.apply(entity);
+		}
+	}
 
-  enum NodeFactory {
-    // 开始节点
-    START((code, name, config, objs) -> new StartWorkFlowNodeDefinitionImpl(code, name)),
+	enum NodeFactory {
+		// 开始节点
+		START((code, name, config, objs) -> new StartWorkFlowNodeDefinitionImpl(code, name)),
 
-    // 用户节点
-    USER((code, name, config, objs) -> new UserWorkFlowNodeDefinitionImpl(code, name,
-        deserialize(config, WorkFlowUserConfig.class))),
+		// 用户节点
+		USER((code, name, config, objs) -> new UserWorkFlowNodeDefinitionImpl(code, name,
+						JacksonUtils.deserialize(config, UserWorkFlowConfigImpl.class))),
 
-    // 任务节点
-    TASK((code, name, config, objs) -> new TaskWorkFlowNodeDefinitionImpl(code, name,
-        deserialize(config, WorkFlowTaskConfig.class))),
+		// 任务节点
+		TASK((code, name, config, objs) -> new TaskWorkFlowNodeDefinitionImpl(code, name,
+						JacksonUtils.deserialize(config, JavaTaskWorkFlowConfigImpl.class))),
 
-    // 嵌套子流程节点，运行态下子流程定义为空
-    CHILD((code, name, config, objs) -> new ChildWorkFlowNodeDefinitionImpl(code, name,
-        deserialize(config, WorkFlowChildConfig.class), objs.length > 0 ? (WorkFlowDefinition) objs[0]: null)),
+		// 嵌套子流程节点，运行态下子流程定义为空
+		CHILD((code, name, config, objs) -> {
+			List<WorkFlowDefinition> ds = new ArrayList<>();
+			for (Object obj : objs) {
+				ds.add((WorkFlowDefinition) obj);
+			}
+			return new ChildWorkFlowNodeDefinitionImpl(code, name,
+							JacksonUtils.deserialize(config, ChildWorkFlowConfigImpl.class),
+							ds);
+		}),
 
-    // 延时节点
-    DELAY((code, name, config, objs) -> new DelayWorkFlowNodeDefinitionImpl(code, name,
-        deserialize(config, DelayTaskConfig.class))),
+		// 延时节点
+		DELAY((code, name, config, objs) -> new DelayWorkFlowNodeDefinitionImpl(code, name,
+						JacksonUtils.deserialize(config, JavaDelayWorkFlowConfigImpl.class))),
 
-    // 汇聚节点
-    MERGE((code, name, config, objs) -> new MergeWorkFlowNodeDefinitionImpl(code, name,
-        deserialize(config, WorkFlowMergeStrategy.class))),
+		// 结束节点
+		END((code, name, config, objs) -> new EndWorkFlowNodeDefinitionImpl(code, name)),
+		;
 
-    // 结束节点
-    END((code, name, config, objs) -> new EndWorkFlowNodeDefinitionImpl(code, name)),
-    ;
+		private final NodeFunction init;
 
-    private final NodeFunction init;
+		NodeFactory(NodeFunction init) {
+			this.init = init;
+		}
 
-    NodeFactory(NodeFunction init) {
-      this.init = init;
-    }
+		public WorkFlowNodeDefinition apply(String code, String name, String config, Object... others) {
+			return init.apply(code, name, config, others);
+		}
+	}
 
-    private static <T> T deserialize(byte[] config, Class<? extends T> clazz) throws WorkFlowException {
-      try (ByteArrayInputStream is = new ByteArrayInputStream(config);
-          ObjectInputStream ois = new ObjectInputStream(is)) {
-        Object oo = ois.readObject();
-        if (!(clazz.isAssignableFrom(oo.getClass()))) {
-          throw new CastWorkFlowClassException("节点定义配置类型不匹配，预期类型：" + clazz.getSimpleName());
-        }
-        return clazz.cast(oo);
+	public WorkFlowDefinition factory(WorkFlowDefinitionEntity de, Map<String, List<WorkFlowDefinitionEntity>> nem) {
+		return new WorkFlowDefinitionImpl(de.getCode(),
+						de.getName(),
+						de.getRootCode(),
+						de.getVersion(),
+						nodeFactory(de.getNodes(), nem),
+						linkFactory(de.getLinks()));
+	}
 
-      } catch (IOException | ClassNotFoundException e) {
-        throw new DeserializeException(String.format("解析节点定义异常，%s", e.getMessage()));
-      }
-    }
+	private List<WorkFlowLinkDefinition> linkFactory(List<? extends WorkFlowLinkDefinitionEntity> lde) {
+		List<WorkFlowLinkDefinition> links = new ArrayList<>(lde.size());
+		for (WorkFlowLinkDefinitionEntity entity : lde) {
+			links.add(LinkFactory.valueOf(entity.getParser().toUpperCase()).apply(entity));
+		}
+		return links;
+	}
 
-    public WorkFlowNodeDefinition apply(String code, String name, byte[] config, Object... others)
-        throws WorkFlowException {
-      return init.apply(code, name, config, others);
-    }
-  }
+	private List<WorkFlowNodeDefinition> nodeFactory(List<? extends WorkFlowNodeDefinitionEntity> nde,
+																									 Map<String, List<WorkFlowDefinitionEntity>> nem) {
+		List<WorkFlowNodeDefinition> nodes = new ArrayList<>(nde.size());
+		for (WorkFlowNodeDefinitionEntity entity : nde) {
+			List<WorkFlowDefinitionEntity> child = nem.get(entity.getCode());
+			if (null == child) {
+				nodes.add(NodeFactory.valueOf(entity.getType()).apply(entity.getCode(), entity.getName(), entity.getConfig()));
+				continue;
+			}
+			List<WorkFlowDefinition> childDefinitions = new ArrayList<>();
+			for (WorkFlowDefinitionEntity c : child) {
+				childDefinitions.add(factory(c, nem));
+			}
+			nodes.add(NodeFactory.valueOf(entity.getType()).apply(entity.getCode(), entity.getName(), entity.getConfig(),
+							childDefinitions.toArray()));
+		}
+		return nodes;
+	}
 
-  public WorkFlowDefinition factory(WorkFlowDefinitionEntity de,
-                                    Map<String, WorkFlowDefinitionEntity> nem) throws WorkFlowException {
-    WorkFlowDefinitionEntity mde = de;
-    return new WorkFlowDefinitionImpl(mde.getCode(),
-        mde.getName(),
-        mde.getVersion(),
-        nodeFactory(mde.getNodes(), nem),
-        linkFactory(mde.getLinks()));
-  }
+	public interface NodeFunction {
 
-  private List<WorkFlowLinkDefinition> linkFactory(List<? extends WorkFlowLinkDefinitionEntity> lde)
-      throws WorkFlowException {
-    List<WorkFlowLinkDefinition> links = new ArrayList<>(lde.size());
-    for (WorkFlowLinkDefinitionEntity entity : lde) {
-      links.add(LinkFactory.valueOf(entity.getParser().toUpperCase()).apply(entity));
-    }
-    return links;
-  }
+		WorkFlowNodeDefinition apply(String code, String name, String config, Object... others);
 
-  private List<WorkFlowNodeDefinition> nodeFactory(List<? extends WorkFlowNodeDefinitionEntity> nde,
-      Map<String, WorkFlowDefinitionEntity> nem)
-      throws WorkFlowException {
-    List<WorkFlowNodeDefinition> nodes = new ArrayList<>(nde.size());
-    for (WorkFlowNodeDefinitionEntity entity : nde) {
-      WorkFlowDefinitionEntity child = nem.get(entity.getCode());
-      if (null == child) {
-        nodes.add(NodeFactory.valueOf(entity.getType()).apply(entity.getCode(), entity.getName(), entity.getConfig()));
-      } else {
-        WorkFlowDefinition childDefinition = factory(child, nem);
-        nodes.add(NodeFactory.valueOf(entity.getType()).apply(entity.getCode(), entity.getName(), entity.getConfig(),
-            childDefinition));
-      }
-    }
-    return nodes;
-  }
+	}
 
-  public interface NodeFunction {
+	public interface LinkFunction {
 
-    WorkFlowNodeDefinition apply(String code, String name, byte[] config, Object... others) throws WorkFlowException;
+		WorkFlowLinkDefinition apply(WorkFlowLinkDefinitionEntity entity);
 
-  }
-
-  public interface LinkFunction {
-
-    WorkFlowLinkDefinition apply(WorkFlowLinkDefinitionEntity entity) throws WorkFlowException;
-
-  }
+	}
 }

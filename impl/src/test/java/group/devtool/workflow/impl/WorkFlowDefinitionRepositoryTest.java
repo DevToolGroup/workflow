@@ -1,19 +1,28 @@
+/*
+ * WorkFlow is a fully functional, non BPMN, lightweight process engine framework developed in Java language, which can be embedded in Java applications and run as a service in servers or clusters.
+ *
+ * License: GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007
+ * See the license.txt file in the root directory or see <http://www.gnu.org/licenses/>.
+ */
 package group.devtool.workflow.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import group.devtool.workflow.core.exception.WorkFlowException;
+import group.devtool.workflow.engine.exception.WorkFlowException;
+import group.devtool.workflow.impl.entity.WorkFlowDefinitionEntity;
+import group.devtool.workflow.impl.entity.WorkFlowLinkDefinitionEntity;
+import group.devtool.workflow.impl.entity.WorkFlowNodeDefinitionEntity;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 
 
-public class WorkFlowDefinitionRepositoryTest extends WorkFlowBeforeTest {
+public class WorkFlowDefinitionRepositoryTest extends InitWorkFlowConfig {
 
   @Test
-  public void testBulkSave() {
+  public void testBulkSave() throws WorkFlowException {
     List<WorkFlowDefinitionEntity> entities = new ArrayList<>();
     WorkFlowDefinitionEntity entity = new WorkFlowDefinitionEntity();
     entity.setCode("test");
@@ -22,15 +31,30 @@ public class WorkFlowDefinitionRepositoryTest extends WorkFlowBeforeTest {
     entity.setState("Y");
     entity.setRootCode("test");
     entities.add(entity);
-		WorkFlowConfigurationImpl.CONFIG.dbTransaction().doInTransaction(() -> {
+		dbConfig.dbTransaction().doInTransaction(() -> {
 			dbConfig.definitionRepository().bulkSave(entities);
+			System.out.println("id:" + entities.get(0).getId());
 			return true;
 		});
 		Assert.assertNotNull(entity.getId());
 	}
 
   @Test
-  public void testLoadDefinition() {
+  public void testLoadDefinition() throws WorkFlowException {
+		List<WorkFlowDefinitionEntity> entities = getWorkFlowDefinitionEntities();
+		dbConfig.dbTransaction().doInTransaction(() -> {
+			dbConfig.definitionRepository().bulkSave(entities);
+
+			List<WorkFlowDefinitionEntity> all = dbConfig.definitionRepository().loadDefinition("test1", "test1", 1, true);
+			Assert.assertEquals(2, all.size());
+
+			List<WorkFlowDefinitionEntity> child = dbConfig.definitionRepository().loadDefinition("test1", "test1", 1, false);
+			Assert.assertEquals(1, child.size());
+			return true;
+		});
+	}
+
+	private static List<WorkFlowDefinitionEntity> getWorkFlowDefinitionEntities() {
 		List<WorkFlowDefinitionEntity> entities = new ArrayList<>();
 		WorkFlowDefinitionEntity entity = new WorkFlowDefinitionEntity();
 		entity.setCode("test1");
@@ -47,20 +71,11 @@ public class WorkFlowDefinitionRepositoryTest extends WorkFlowBeforeTest {
 		entity2.setNodeCode("cc");
 		entity2.setRootCode("test1");
 		entities.add(entity2);
-		dbConfig.dbTransaction().doInTransaction(() -> {
-			dbConfig.definitionRepository().bulkSave(entities);
-
-			List<WorkFlowDefinitionEntity> all = dbConfig.definitionRepository().loadDefinition("test1", 1, true);
-			Assert.assertEquals(2, all.size());
-
-			List<WorkFlowDefinitionEntity> child = dbConfig.definitionRepository().loadDefinition("test1", 1, false);
-			Assert.assertEquals(1, child.size());
-			return true;
-		});
+		return entities;
 	}
 
-  @Test
-  public void testLoadDeployedDefinition() {
+	@Test
+  public void testLoadDeployedDefinition() throws WorkFlowException {
 		dbConfig.dbTransaction().doInTransaction(() -> {
 			List<WorkFlowDefinitionEntity> entities = new ArrayList<>();
 			WorkFlowDefinitionEntity entity = new WorkFlowDefinitionEntity();
@@ -71,10 +86,10 @@ public class WorkFlowDefinitionRepositoryTest extends WorkFlowBeforeTest {
 			entity.setRootCode("deployed");
 			entities.add(entity);
 			dbConfig.definitionRepository().bulkSave(entities);
-			WorkFlowDefinitionEntity definition = dbConfig.definitionRepository().loadDeployedDefinition("deployed");
+			WorkFlowDefinitionEntity definition = dbConfig.definitionRepository().loadDeployedDefinition("deployed", "deployed");
 			Assert.assertNull(definition);
-			dbConfig.definitionRepository().changeState("deployed", "Y", "N");
-			definition = dbConfig.definitionRepository().loadDeployedDefinition("deployed");
+			dbConfig.definitionRepository().undeploy("deployed", "Y", "N");
+			definition = dbConfig.definitionRepository().loadDeployedDefinition("deployed", "deployed");
 			Assert.assertNotNull(definition);
 			Assert.assertEquals("deployed", definition.getCode());
 			return true;
@@ -83,7 +98,7 @@ public class WorkFlowDefinitionRepositoryTest extends WorkFlowBeforeTest {
 	}
 
   @Test
-  public void testLoadDefinitionVersion() {
+  public void testLoadDefinitionVersion() throws WorkFlowException {
 		dbConfig.dbTransaction().doInTransaction(() -> {
 			List<WorkFlowDefinitionEntity> entities = new ArrayList<>();
 			WorkFlowDefinitionEntity entity = new WorkFlowDefinitionEntity();
@@ -94,10 +109,10 @@ public class WorkFlowDefinitionRepositoryTest extends WorkFlowBeforeTest {
 			entity.setRootCode("latest");
 			entities.add(entity);
 			dbConfig.definitionRepository().bulkSave(entities);
-			Integer version = dbConfig.definitionRepository().loadDefinitionLatestVersion("latest");
+			Integer version = dbConfig.definitionRepository().loadDefinitionLatestVersion("latest", "latest");
 			Assert.assertEquals(Integer.valueOf(1), version);
 
-			Integer version2 = dbConfig.definitionRepository().loadDefinitionLatestVersion("latest2");
+			Integer version2 = dbConfig.definitionRepository().loadDefinitionLatestVersion("latest2", "latest");
 			Assert.assertNull(version2);
 			return true;
 		});
@@ -105,7 +120,7 @@ public class WorkFlowDefinitionRepositoryTest extends WorkFlowBeforeTest {
 	}
 
   @Test
-  public void testLoadNodeDefinition() {
+  public void testLoadNodeDefinition() throws WorkFlowException {
     List<WorkFlowNodeDefinitionEntity> nodes = new ArrayList<>();
     WorkFlowNodeDefinitionEntity node = new WorkFlowNodeDefinitionEntity();
     node.setName("start");
@@ -118,7 +133,7 @@ public class WorkFlowDefinitionRepositoryTest extends WorkFlowBeforeTest {
 		dbConfig.dbTransaction().doInTransaction(() -> {
 			dbConfig.definitionRepository().bulkSaveNode(nodes);
 			List<WorkFlowNodeDefinitionEntity> entities = dbConfig.definitionRepository().loadNodeDefinition("start",
-					1, false);
+							"start", 1, false);
 			Assert.assertNotNull(entities.get(0).getId());
 			Assert.assertEquals("start", entities.get(0).getCode());
 			return true;
@@ -126,9 +141,10 @@ public class WorkFlowDefinitionRepositoryTest extends WorkFlowBeforeTest {
 	}
 
   @Test
-  public void testLoadLinkDefinition() {
+  public void testLoadLinkDefinition() throws WorkFlowException {
     List<WorkFlowLinkDefinitionEntity> links = new ArrayList<>();
     WorkFlowLinkDefinitionEntity link = new WorkFlowLinkDefinitionEntity();
+		link.setCode("start");
     link.setSource("start");
     link.setTarget("start");
     link.setExpression("START");
@@ -140,7 +156,7 @@ public class WorkFlowDefinitionRepositoryTest extends WorkFlowBeforeTest {
 		dbConfig.dbTransaction().doInTransaction(() -> {
 			dbConfig.definitionRepository().bulkSaveLink(links);
 			List<WorkFlowLinkDefinitionEntity> entities = dbConfig.definitionRepository().loadLinkDefinition("start",
-					1, false);
+							"start", 1, false);
 			Assert.assertNotNull(entities.get(0).getId());
 			Assert.assertEquals("start", entities.get(0).getSource());
 			return true;
@@ -149,8 +165,6 @@ public class WorkFlowDefinitionRepositoryTest extends WorkFlowBeforeTest {
 
   @After
   public void after() throws IOException {
-    System.out.println("after");
-    System.out.println(System.currentTimeMillis());
-    dbConfig.taskScheduler().close();
+    // dbConfig.taskScheduler().close();
   }
 }

@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="group.devtool.workflow.impl.mapper.WorkFlowMapper">
+    <!--流程定义相关-->
+    <resultMap id="definition" type="group.devtool.workflow.impl.entity.WorkFlowDefinitionEntity">
+        <id column="id" property="id"/>
+        <result column="code" property="code"/>
+        <result column="name" property="name"/>
+        <result column="version" property="version"/>
+        <result column="state" property="state"/>
+        <result column="node_code" property="nodeCode"/>
+        <result column="root_code" property="rootCode"/>
+    </resultMap>
+
+    <resultMap id="nodeDefinition" type="group.devtool.workflow.impl.entity.WorkFlowNodeDefinitionEntity">
+        <id column="id" property="id"/>
+        <result column="code" property="code"/>
+        <result column="name" property="name"/>
+        <result column="version" property="version"/>
+        <result column="type" property="type"/>
+        <result column="config" property="config"/>
+        <result column="definition_code" property="definitionCode"/>
+        <result column="root_definition_code" property="rootDefinitionCode"/>
+    </resultMap>
+
+    <resultMap id="linkDefinition" type="group.devtool.workflow.impl.entity.WorkFlowLinkDefinitionEntity">
+        <id column="id" property="id"/>
+        <result column="code" property="code"/>
+        <result column="source" property="source"/>
+        <result column="target" property="target"/>
+        <result column="expression" property="expression"/>
+        <result column="parser" property="parser"/>
+        <result column="config" property="config"/>
+        <result column="version" property="version"/>
+        <result column="definition_code" property="definitionCode"/>
+        <result column="root_definition_code" property="rootDefinitionCode"/>
+    </resultMap>
+
+    <!--流程实例相关-->
+    <resultMap id="variable" type="group.devtool.workflow.impl.entity.WorkFlowVariableEntity">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="value" property="value"/>
+        <result column="root_instance_id" property="rootInstanceId"/>
+    </resultMap>
+
+    <resultMap id="instance" type="group.devtool.workflow.impl.entity.WorkFlowInstanceEntity">
+        <id column="id" property="id"/>
+        <result column="state" property="state"/>
+        <result column="scope" property="scope"/>
+        <result column="instance_id" property="instanceId"/>
+        <result column="definition_code" property="definitionCode"/>
+        <result column="root_definition_code" property="rootDefinitionCode"/>
+        <result column="definition_version" property="definitionVersion"/>
+        <result column="parent_task_id" property="parentTaskId"/>
+        <result column="root_instance_id" property="rootInstanceId"/>
+    </resultMap>
+
+    <resultMap id="task" type="group.devtool.workflow.impl.entity.WorkFlowTaskEntity">
+        <id column="id" property="id"/>
+        <result column="task_id" property="taskId"/>
+        <result column="task_class" property="taskClass"/>
+        <result column="task_state" property="taskState"/>
+        <result column="complete_user" property="completeUser"/>
+        <result column="complete_time" property="completeTime"/>
+        <result column="config" property="config"/>
+        <result column="node_id" property="nodeId"/>
+        <result column="node_code" property="nodeCode"/>
+        <result column="instance_id" property="instanceId"/>
+        <result column="root_instance_id" property="rootInstanceId"/>
+    </resultMap>
+
+    <resultMap id="node" type="group.devtool.workflow.impl.entity.WorkFlowNodeEntity">
+        <id column="id" property="id"/>
+        <result column="node_id" property="nodeId"/>
+        <result column="node_code" property="nodeCode"/>
+        <result column="node_class" property="nodeClass"/>
+        <result column="node_state" property="nodeState"/>
+        <result column="version" property="version"/>
+        <result column="config" property="config"/>
+        <result column="instance_id" property="instanceId"/>
+        <result column="root_instance_id" property="rootInstanceId"/>
+    </resultMap>
+
+    <resultMap id="delayTask" type="group.devtool.workflow.impl.entity.WorkFlowDelayItemEntity">
+        <id column="id" property="id"/>
+        <result column="item_id" property="itemId"/>
+        <result column="task_id" property="taskId"/>
+        <result column="root_instance_id" property="rootInstanceId"/>
+    </resultMap>
+
+    <!-- SQL 语句-->
+    <insert id="bulkSaveDefinition" useGeneratedKeys="true" keyProperty="id"
+            parameterType="group.devtool.workflow.impl.entity.WorkFlowDefinitionEntity">
+        insert into wf_definition
+        (code, name, version, state, node_code, root_code)
+        values
+        <foreach item="item" index="index" collection="items" separator=",">
+            (#{item.code}, #{item.name}, #{item.version}, #{item.state}, #{item.nodeCode}, #{item.rootCode})
+        </foreach>
+    </insert>
+
+    <insert id="bulkSaveNodeDefinition" useGeneratedKeys="true" keyProperty="id"
+            parameterType="group.devtool.workflow.impl.entity.WorkFlowNodeDefinitionEntity">
+        insert into wf_node_definition
+        (code, name, type, config, version, definition_code, root_definition_code)
+        values
+        <foreach item="node" index="index" collection="nodes" separator=",">
+            (#{node.code}, #{node.name}, #{node.type}, #{node.config}, #{node.version}, #{node.definitionCode},
+            #{node.rootDefinitionCode})
+        </foreach>
+    </insert>
+
+    <insert id="bulkSaveLinkDefinition" useGeneratedKeys="true" keyProperty="id"
+            parameterType="group.devtool.workflow.impl.entity.WorkFlowLinkDefinitionEntity">
+        insert into wf_link_definition
+        (code, source, target, parser, expression, version, definition_code, root_definition_code)
+        values
+        <foreach item="link" index="index" collection="links" separator=",">
+            (#{link.code}, #{link.source}, #{link.target}, #{link.parser}, #{link.expression}, #{link.version},
+            #{link.definitionCode}, #{link.rootDefinitionCode})
+        </foreach>
+    </insert>
+
+    <update id="changeState">
+        update
+            wf_definition
+        set
+            state = #{afterState}
+        where
+            root_code = #{code}
+            and state = #{beforeState}
+    </update>
+
+    <select id="loadDefinition" resultMap="definition">
+        select
+            id, code, name, version, state, node_code, root_code
+        from
+            wf_definition
+        where
+        <choose>
+            <when test="recursion == true">
+                root_code = #{code}
+            </when>
+            <otherwise>
+                code = #{code}
+                and root_code = #{rootCode}
+            </otherwise>
+        </choose>
+        and version = #{version}
+    </select>
+
+    <select id="loadDeployedDefinition" resultMap="definition">
+        select
+            id, code, name, version, state, node_code, root_code
+        from
+            wf_definition
+        where
+            code = #{code}
+            and state = 'Y'
+            and root_code = #{code}
+    </select>
+
+    <select id="loadDefinitionLatestVersion" resultType="java.lang.Integer">
+        select
+            max(version)
+        from
+            wf_definition
+        where
+            code = #{code}
+            and root_code = #{rootCode}
+    </select>
+
+    <select id="loadNodeDefinition" resultMap="nodeDefinition">
+        select
+        id, code, type, name, config, version, definition_code, root_definition_code
+        from
+        wf_node_definition
+        where
+        <choose>
+            <when test="recursion == true">
+                root_definition_code = #{code}
+            </when>
+            <otherwise>
+                definition_code = #{code}
+                and root_definition_code = #{rootCode}
+            </otherwise>
+        </choose>
+        and version = #{version}
+    </select>
+
+    <select id="loadLinkDefinition" resultMap="linkDefinition">
+        select
+            id, code, source, target, parser, expression, version, definition_code, root_definition_code
+        from
+            wf_link_definition
+        where
+        <choose>
+            <when test="recursion == true">
+                root_definition_code = #{code}
+            </when>
+            <otherwise>
+                definition_code = #{code}
+                and root_definition_code = #{rootCode}
+            </otherwise>
+        </choose>
+        and version = #{version}
+    </select>
+
+    <select id="loadVariable" resultMap="variable">
+        select
+            id, name, `value`, `type`, root_instance_id
+        from wf_instance_variable
+        where root_instance_id = #{instanceId}
+        order by id asc
+    </select>
+
+    <insert id="bulkSaveVariable" useGeneratedKeys="true" keyProperty="id"
+            parameterType="group.devtool.workflow.impl.entity.WorkFlowVariableEntity">
+        insert into wf_instance_variable
+        (name, `value`, `type`, root_instance_id)
+        values
+        <foreach collection="variables" item="variable" index="index" separator=",">
+            (#{variable.name}, #{variable.value}, #{variable.type}, #{variable.rootInstanceId})
+        </foreach>
+    </insert>
+
+    <select id="loadInstance" resultMap="instance">
+        select
+        id, state, scope, definition_code, definition_version, root_definition_code, instance_id, parent_task_id, root_instance_id
+        from
+        wf_instance
+        where instance_id = #{instanceId} and root_instance_id = #{rootInstanceId}
+    </select>
+
+    <select id="loadTaskByNodeId" resultMap="task">
+        select
+        id, task_id, task_class, task_state, complete_user, complete_time, config, node_id, node_code,
+        instance_id, root_instance_id
+        from
+        wf_instance_task
+        where
+        node_id = #{nodeId}
+        and root_instance_id = #{rootInstanceId}
+    </select>
+
+    <select id="loadTaskByTaskId" resultMap="task">
+        select
+        id, task_id, task_class, task_state, complete_user, complete_time, config, node_id, node_code,
+        instance_id, root_instance_id
+        from
+        wf_instance_task
+        where
+        task_id = #{taskId}
+        and root_instance_id = #{rootInstanceId}
+        and task_state = 'DOING'
+    </select>
+
+    <select id="loadActiveTask" resultMap="task">
+        select
+            id, task_id, task_class, task_state, complete_user, complete_time, config, node_id, node_code,
+            instance_id, root_instance_id
+        from
+            wf_instance_task
+        where
+            root_instance_id = #{rootInstanceId}
+            and task_state = 'DOING'
+    </select>
+
+    <select id="loadNodeById" resultMap="node">
+        select
+            id, node_id, node_code, node_class, node_state, config, version, instance_id, root_instance_id
+        from
+            wf_instance_node
+        where
+            root_instance_id = #{rootInstanceId}
+            and node_id = #{nodeId}
+    </select>
+
+    <!-- only test -->
+    <select id="loadActiveNodeByCode" resultMap="node">
+        select
+            id, node_id, node_code, node_class, node_state, config, version, instance_id, root_instance_id
+        from
+            wf_instance_node
+        where
+            root_instance_id = #{rootInstanceId}
+            and node_code = #{nodeCode}
+            and node_state = 'DOING'
+    </select>
+
+    <!-- only test -->
+    <select id="loadChildActiveNodeByCode" resultMap="node">
+        select
+            id, node_id, node_code, node_class, node_state, config, version, instance_id, root_instance_id
+        from
+            wf_instance_node
+        where
+            root_instance_id = #{rootInstanceId}
+            and instance_id = #{instanceId}
+            and node_code = #{nodeCode}
+            and node_state = 'DOING'
+    </select>
+
+    <!-- only test -->
+    <select id="loadParentInstance" resultMap="instance">
+        select
+        id, state, scope, definition_code, definition_version, root_definition_code, instance_id, parent_task_id, root_instance_id
+        from
+        wf_instance
+        where parent_task_id = #{parentTaskId} and root_instance_id = #{instanceId}
+    </select>
+
+    <update id="lockNode">
+        update
+            wf_instance_node
+        set
+            version = version + 1
+        where
+            node_id = #{nodeId}
+            and version = #{version}
+            and root_instance_id = #{rootInstanceId}
+    </update>
+
+    <update id="changeTaskComplete">
+        update
+            wf_instance_task
+        set
+            task_state = 'DONE',
+            complete_user = #{completeUser},
+            complete_time = #{completeTime}
+        where
+            task_id = #{taskId}
+            and root_instance_id = #{rootInstanceId}
+            and task_state = 'DOING'
+    </update>
+
+    <insert id="saveNode" useGeneratedKeys="true" keyProperty="id"
+            parameterType="group.devtool.workflow.impl.entity.WorkFlowNodeEntity">
+        insert into wf_instance_node
+        (node_id, node_code, node_class, node_state, config, version, instance_id, root_instance_id)
+        values
+        (#{entity.nodeId},
+        #{entity.nodeCode},
+        #{entity.nodeClass},
+        #{entity.nodeState},
+        #{entity.config},
+        #{entity.version},
+        #{entity.instanceId},
+        #{entity.rootInstanceId}
+        )
+    </insert>
+
+    <update id="changeNodeComplete">
+        update
+        wf_instance_node
+        set
+            node_state = 'DONE',
+            version = version + 1
+        where
+        node_id = #{nodeId}
+        and root_instance_id = #{rootInstanceId}
+        and version = #{version}
+        and node_state = 'DOING'
+    </update>
+
+    <update id="changeInstanceComplete">
+        update
+        wf_instance
+            set state = 'DONE'
+        where
+            instance_id = #{instanceId}
+            and root_instance_id = #{rootInstanceId}
+            and state = 'DOING'
+    </update>
+
+    <update id="changeInstanceStop">
+        update
+            wf_instance
+            set state = 'STOP'
+        where
+            instance_id = #{instanceId}
+            and root_instance_id = #{rootInstanceId}
+            and state = 'DOING'
+    </update>
+
+    <insert id="saveInstance" useGeneratedKeys="true" keyProperty="id"
+            parameterType="group.devtool.workflow.impl.entity.WorkFlowInstanceEntity">
+        insert into wf_instance
+        (instance_id, state, scope, parent_task_id, root_instance_id, definition_code, definition_version, root_definition_code)
+        values
+        (#{entity.instanceId},
+        #{entity.state},
+        #{entity.scope},
+        #{entity.parentTaskId},
+        #{entity.rootInstanceId},
+        #{entity.definitionCode},
+        #{entity.definitionVersion},
+        #{entity.rootDefinitionCode}
+        )
+    </insert>
+
+    <insert id="bulkSaveTask" useGeneratedKeys="true" keyProperty="id"
+            parameterType="group.devtool.workflow.impl.entity.WorkFlowTaskEntity">
+        insert into wf_instance_task
+        (task_id, task_class, task_state, complete_user, complete_time, config, node_id, node_code,
+        instance_id, root_instance_id)
+        values
+        <foreach item="task" index="index" collection="tasks" separator=",">
+            (#{task.taskId}, #{task.taskClass}, #{task.taskState}, #{task.completeUser}, #{task.completeTime},
+            #{task.config}, #{task.nodeId}, #{task.nodeCode}, #{task.instanceId},
+            #{task.rootInstanceId})
+        </foreach>
+    </insert>
+
+    <insert id="addDelayTask" useGeneratedKeys="true" keyProperty="id"
+            parameterType="group.devtool.workflow.impl.entity.WorkFlowDelayItemEntity">
+        insert into wf_instance_delay_task
+        (item_id, delay, state, task_id, root_instance_id)
+        values (
+        #{item.itemId},
+        #{item.delay},
+        'PENDING',
+        #{item.taskId},
+        #{item.rootInstanceId}
+        )
+    </insert>
+
+    <select id="loadDelayTask" resultMap="delayTask">
+        select
+        id, item_id, task_id, root_instance_id
+        from
+        wf_instance_delay_task
+        where
+        delay >= #{current}
+        and state = 'PENDING'
+    </select>
+
+    <update id="setDelaySuccess">
+        update
+        wf_instance_delay_task
+        set
+        state = 'SUCCESS'
+        where
+        item_id = #{itemId}
+        and root_instance_id = #{rootInstanceId}
+    </update>
+
+</mapper>
