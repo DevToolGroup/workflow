@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * 流程上下文，保存流程运行过程中涉及的流程实例信息，节点信息，变量信息
  */
-public interface WorkFlowContext extends Serializable {
+public interface WorkFlowContext {
 
 	String USER = "USER";
 

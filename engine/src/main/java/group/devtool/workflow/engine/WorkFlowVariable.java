@@ -11,7 +11,7 @@ import java.io.Serializable;
 /**
  * 流程变量
  */
-public class WorkFlowVariable {
+public class WorkFlowVariable implements Serializable {
 
 	private final String name;
 

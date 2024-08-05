@@ -80,7 +80,7 @@ public interface WorkFlowInstance {
 	interface InitNode {
 
 		/**
-		 * 初始化流程流转的下一节点
+		 * 初始化流程流转的下一个节点
 		 *
 		 * @param definitions    节点定义
 		 * @param instanceId     流程实例ID
