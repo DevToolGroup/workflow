@@ -6,19 +6,17 @@
  */
 package group.devtool.workflow.engine;
 
-import group.devtool.workflow.engine.exception.WorkFlowException;
-
 /**
  * 存储事务
  */
 public interface WorkFlowTransaction {
 
-	<T> T doInTransaction(WorkFlowTransactionOperate<T> operate) throws WorkFlowException;
+	<T> T doInTransaction(WorkFlowTransactionOperate<T> operate);
 
 	@FunctionalInterface
 	interface WorkFlowTransactionOperate<T> {
 
-		T apply() throws WorkFlowException;
+		T apply();
 
 	}
 

@@ -24,7 +24,7 @@ public interface WorkFlowCallback {
     try {
       doCallback(event, context);
     } catch (Exception e) {
-      // 忽略异常，后续增加日志
+      // do nothing
     }
   }
 

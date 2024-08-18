@@ -53,8 +53,7 @@ public abstract class ChildWorkFlowNode extends AbstractWorkFlowNode implements 
 		for (ChildStartUp startUp: config.getStartUp()) {
 			if (null == startUp.getExpression() || match(startUp.getExpression(), context)) {
 				ChildWorkFlowTask[] tasks = doInitTask(startUp.getTaskNumber(), context);
-				for (int i = 0; i < tasks.length; i++) {
-					ChildWorkFlowTask task = tasks[i];
+				for (ChildWorkFlowTask task : tasks) {
 					result.add(task);
 					childNodes.put(task.getTaskId(), startUp.getChildCode());
 				}

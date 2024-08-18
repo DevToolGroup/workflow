@@ -6,12 +6,14 @@
  */
 package group.devtool.workflow.engine;
 
-import group.devtool.workflow.engine.exception.ConfigException;
+import group.devtool.workflow.engine.exception.ConfigurationException;
 
 /**
  * 流程依赖服务配置
  */
 public class WorkFlowConfiguration {
+
+  private WorkFlowIdSupplier supplier;
 
   private WorkFlowTransaction dbTransaction;
 
@@ -19,12 +21,25 @@ public class WorkFlowConfiguration {
 
   private WorkFlowDefinitionService definitionService;
 
-  private WorkFlowScheduler taskScheduler;
+  private WorkFlowDelayTaskScheduler taskScheduler;
 
   private WorkFlowCallback callback;
 
+  private WorkFlowRetryService retry;
+
   protected WorkFlowConfiguration() {
 
+  }
+
+  public WorkFlowIdSupplier idSupplier() {
+    if (null == dbTransaction()) {
+      throw new ConfigurationException("数据库事务管理器未设置");
+    }
+    return supplier;
+  }
+
+  public void setSupplier(WorkFlowIdSupplier supplier) {
+    this.supplier = supplier;
   }
 
   /**
@@ -52,13 +67,13 @@ public class WorkFlowConfiguration {
   /**
    * @return 流程延时任务
    */
-  public WorkFlowScheduler taskScheduler() {
+  public WorkFlowDelayTaskScheduler taskScheduler() {
     return taskScheduler;
   }
 
-  public void setTaskScheduler(WorkFlowScheduler taskScheduler) {
+  public void setTaskScheduler(WorkFlowDelayTaskScheduler taskScheduler) {
     if (null != taskScheduler && !taskScheduler.ready()) {
-      throw new ConfigException("流程延时任务调度未就绪");
+      throw new ConfigurationException("流程延时任务调度未就绪");
     }
     this.taskScheduler = taskScheduler;
   }
@@ -85,4 +100,11 @@ public class WorkFlowConfiguration {
     this.dbTransaction = dbTransaction;
   }
 
+  public WorkFlowRetryService retry() {
+    return retry;
+  }
+
+  public void setRetry(WorkFlowRetryService retry) {
+    this.retry = retry;
+  }
 }

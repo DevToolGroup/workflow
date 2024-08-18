@@ -35,13 +35,13 @@ import group.devtool.workflow.impl.definition.UserWorkFlowNodeDefinitionImpl.Use
 public class WorkFlowEngineTest extends InitWorkFlowConfig {
 
 	@Test
-	public void testDeploy() throws WorkFlowException {
+	public void testDeploy() {
 		WorkFlowEngine engine = new WorkFlowEngine(dbConfig);
 		engine.deploy(getDefinition("engine1"));
 	}
 
 	@Test
-	public void testUnDeploy() throws WorkFlowException {
+	public void testUnDeploy() {
 		WorkFlowEngine engine = new WorkFlowEngine(dbConfig);
 		engine.deploy(getDefinition("engine2"));
 		engine.undeploy("engine2");
@@ -50,7 +50,7 @@ public class WorkFlowEngineTest extends InitWorkFlowConfig {
 	}
 
 	@Test
-	public void testRun() throws WorkFlowException {
+	public void testRun() {
 		WorkFlowEngine engine = new WorkFlowEngine(dbConfig);
 		engine.deploy(getDefinition("engine3"));
 		String instanceId = engine.start("engine3", WorkFlowVariable.global(WorkFlowContext.USER, "admin"));
@@ -214,7 +214,7 @@ public class WorkFlowEngineTest extends InitWorkFlowConfig {
 	}
 
 	@Test
-	public void testRunMultiChild() throws WorkFlowException {
+	public void testRunMultiChild() {
 		WorkFlowEngine engine = new WorkFlowEngine(dbConfig);
 		engine.deploy(getMultiDefinition());
 		String instanceId = engine.start("multi", WorkFlowVariable.global(WorkFlowContext.USER, "admin"));
@@ -381,21 +381,21 @@ public class WorkFlowEngineTest extends InitWorkFlowConfig {
 		links.add(new SPELWorkFlowLinkDefinitionImpl("l5", "engine_u1", "engine_end", "#a != null ? (#a < 2) : false"));
 	}
 
-	private WorkFlowNode getChildNode(String nodeCode, String taskId, String instanceId) throws WorkFlowException {
+	private WorkFlowNode getChildNode(String nodeCode, String taskId, String instanceId) {
 		return dbConfig.dbTransaction().doInTransaction(() -> {
 			WorkFlowServiceImpl service = new WorkFlowServiceImpl();
 			return service.getChildActiveNodeByCode(nodeCode, taskId, instanceId);
 		});
 	}
 
-	private WorkFlowNode getNode(String nodeCode, String instanceId) throws WorkFlowException {
+	private WorkFlowNode getNode(String nodeCode, String instanceId) {
 		return dbConfig.dbTransaction().doInTransaction(() -> {
 			WorkFlowServiceImpl service = new WorkFlowServiceImpl();
 			return service.getActiveNodeByCode(nodeCode, instanceId);
 		});
 	}
 
-	private WorkFlowInstance getInstance(String instanceId, String rootInstanceId) throws WorkFlowException {
+	private WorkFlowInstance getInstance(String instanceId, String rootInstanceId) {
 		return dbConfig.dbTransaction().doInTransaction(() -> {
 			WorkFlowServiceImpl service = new WorkFlowServiceImpl();
 			return service.getInstance(instanceId, rootInstanceId);

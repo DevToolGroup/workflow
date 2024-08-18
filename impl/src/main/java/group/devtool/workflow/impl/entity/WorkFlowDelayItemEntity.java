@@ -7,8 +7,7 @@
 package group.devtool.workflow.impl.entity;
 
 import group.devtool.workflow.engine.WorkFlowEngine;
-import group.devtool.workflow.engine.WorkFlowScheduler.DelayItem;
-import group.devtool.workflow.engine.exception.WorkFlowException;
+import group.devtool.workflow.engine.WorkFlowDelayTaskScheduler.DelayItem;
 import group.devtool.workflow.impl.WorkFlowConfigurationImpl;
 
 /**
@@ -69,10 +68,6 @@ public class WorkFlowDelayItemEntity implements DelayItem {
 
 	@Override
 	public void run() {
-		try {
-			new WorkFlowEngine(WorkFlowConfigurationImpl.CONFIG).run(rootInstanceId, taskId);
-		} catch (WorkFlowException e) {
-			// FIXME logger
-		}
+		new WorkFlowEngine(WorkFlowConfigurationImpl.CONFIG).run(rootInstanceId, taskId);
 	}
 }

@@ -13,8 +13,8 @@ import group.devtool.workflow.engine.runtime.DelayWorkFlowTask;
 import group.devtool.workflow.engine.runtime.DelayWorkFlowTask.DelayWorkFlowTaskConfig;
 import group.devtool.workflow.engine.WorkFlowContextImpl;
 import group.devtool.workflow.engine.definition.WorkFlowNodeDefinition;
-import group.devtool.workflow.engine.WorkFlowScheduler;
-import group.devtool.workflow.engine.WorkFlowScheduler.DelayItem;
+import group.devtool.workflow.engine.WorkFlowDelayTaskScheduler;
+import group.devtool.workflow.engine.WorkFlowDelayTaskScheduler.DelayItem;
 import group.devtool.workflow.engine.runtime.WorkFlowTask;
 import group.devtool.workflow.engine.exception.NotSupportWorkFlowTaskClass;
 import group.devtool.workflow.impl.WorkFlowConfigurationImpl;
@@ -68,7 +68,7 @@ public class DelayWorkFlowNodeImpl extends DelayWorkFlowNode {
 	}
 
 	@Override
-	protected WorkFlowScheduler getScheduler() {
+	protected WorkFlowDelayTaskScheduler getScheduler() {
 		return WorkFlowConfigurationImpl.CONFIG.taskScheduler();
 	}
 

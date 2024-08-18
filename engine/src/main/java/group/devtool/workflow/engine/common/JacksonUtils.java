@@ -11,13 +11,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import group.devtool.workflow.engine.exception.DeserializeException;
 import group.devtool.workflow.engine.exception.SerializeException;
 
-import java.io.Serializable;
-
 public final class JacksonUtils {
 
 	private final static ObjectMapper MAPPER = new ObjectMapper();
 
-	public static String serialize(Serializable value) throws SerializeException {
+	public static String serialize(Object value) throws SerializeException {
 		try {
 			return MAPPER.writeValueAsString(value);
 		} catch (JsonProcessingException e) {

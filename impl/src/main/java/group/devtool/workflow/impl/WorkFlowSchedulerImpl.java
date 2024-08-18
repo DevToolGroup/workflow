@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import group.devtool.workflow.engine.ThreadWorkFlowScheduler;
-import group.devtool.workflow.engine.exception.WorkFlowException;
 import group.devtool.workflow.impl.entity.WorkFlowDelayItemEntity;
 import group.devtool.workflow.impl.repository.WorkFlowSchedulerRepository;
 
@@ -34,10 +33,7 @@ public class WorkFlowSchedulerImpl extends ThreadWorkFlowScheduler {
   }
 
   @Override
-  protected void delayAfter(DelayItem item, WorkFlowException exception) {
-    if (null != exception) {
-      return;
-    }
+  protected void delayAfter(DelayItem item) {
 		repository.setDelaySuccess((WorkFlowDelayItemEntity) item);
 	}
 

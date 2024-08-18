@@ -11,7 +11,6 @@ import java.util.*;
 import group.devtool.workflow.engine.common.JacksonUtils;
 import group.devtool.workflow.engine.WorkFlowContext;
 import group.devtool.workflow.engine.definition.*;
-import group.devtool.workflow.engine.exception.WorkFlowException;
 import group.devtool.workflow.impl.definition.*;
 import group.devtool.workflow.impl.runtime.*;
 import org.junit.Assert;
@@ -41,7 +40,7 @@ public class WorkFlowNodeTest extends InitWorkFlowConfig {
 	}
 
 	@Test
-	public void testStartDefinition() throws WorkFlowException {
+	public void testStartDefinition() {
 		WorkFlowDefinition definition = getDefinition("test");
 
 		WorkFlowContextImpl context = new WorkFlowContextImpl("test");

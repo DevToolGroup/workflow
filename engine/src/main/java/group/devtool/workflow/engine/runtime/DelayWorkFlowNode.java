@@ -9,8 +9,8 @@ package group.devtool.workflow.engine.runtime;
 import java.util.Arrays;
 
 import group.devtool.workflow.engine.WorkFlowContextImpl;
-import group.devtool.workflow.engine.WorkFlowScheduler;
-import group.devtool.workflow.engine.WorkFlowScheduler.DelayItem;
+import group.devtool.workflow.engine.WorkFlowDelayTaskScheduler;
+import group.devtool.workflow.engine.WorkFlowDelayTaskScheduler.DelayItem;
 import group.devtool.workflow.engine.definition.DelayWorkFlowNodeDefinition;
 import group.devtool.workflow.engine.definition.WorkFlowNodeDefinition;
 import group.devtool.workflow.engine.definition.WorkFlowNodeDefinition.WorkFlowNodeConfig;
@@ -44,7 +44,7 @@ public abstract class DelayWorkFlowNode extends AbstractWorkFlowNode {
 	/**
 	 * @return 流程调度器
 	 */
-	protected abstract WorkFlowScheduler getScheduler();
+	protected abstract WorkFlowDelayTaskScheduler getScheduler();
 
 	/**
 	 * 初始化延时任务

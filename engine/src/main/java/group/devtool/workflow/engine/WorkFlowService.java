@@ -7,6 +7,7 @@
 package group.devtool.workflow.engine;
 
 import group.devtool.workflow.engine.definition.WorkFlowNodeDefinition;
+import group.devtool.workflow.engine.operation.WorkFlowOperation;
 import group.devtool.workflow.engine.runtime.WorkFlowInstance;
 import group.devtool.workflow.engine.runtime.WorkFlowNode;
 import group.devtool.workflow.engine.runtime.WorkFlowTask;
@@ -159,6 +160,4 @@ public interface WorkFlowService {
 	List<WorkFlowTask> loadActiveTask(String rootInstanceId);
 
 	void changeInstanceStop(WorkFlowInstance instance);
-
-
 }

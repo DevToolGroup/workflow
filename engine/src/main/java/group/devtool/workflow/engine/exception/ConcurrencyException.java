@@ -6,9 +6,10 @@
  */
 package group.devtool.workflow.engine.exception;
 
-public class ConfigException extends RuntimeException {
+public class ConcurrencyException extends TransactionException {
 
-  public ConfigException(String message) {
+  public ConcurrencyException(String message) {
     super(message);
   }
+
 }

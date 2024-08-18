@@ -31,13 +31,13 @@ public interface WorkFlowDefinitionService {
 	 * @param definition 流程定义
 	 * 
 	 */
-	void deploy(WorkFlowDefinition definition) throws WorkFlowTransactionException;
+	void deploy(WorkFlowDefinition definition) throws TransactionException;
 
 	/**
 	 * 流程定义卸载，如果流程定义已存在，则更新流程定义的版本
 	 *
 	 * @param code 流程定义
 	 */
-	void undeploy(String code) throws WorkFlowTransactionException;
+	void undeploy(String code) throws TransactionException;
 
 }

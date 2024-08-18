@@ -201,7 +201,7 @@ public class WorkFlowServiceImpl implements WorkFlowService {
 		int rows = config.repository().changeTaskComplete(task.getCompleteUser(), task.getCompleteTime(), task.getTaskId(),
 						task.getRootInstanceId());
 		if (rows != 1) {
-			throw new WorkFlowConcurrencyTransactionException("任务状态已完成或不存在"
+			throw new ConcurrencyException("任务状态已完成或不存在"
 							+ "。任务ID：" + task.getTaskId()
 							+ "，实例ID：" + task.getRootInstanceId());
 		}
@@ -237,7 +237,7 @@ public class WorkFlowServiceImpl implements WorkFlowService {
 	public void changeInstanceComplete(WorkFlowInstance instance, String rootInstanceId) {
 		int rows = config.repository().changeInstanceComplete(instance.getInstanceId(), rootInstanceId);
 		if (rows != 1) {
-			throw new WorkFlowConcurrencyTransactionException("实例状态已完成或不存在"
+			throw new ConcurrencyException("实例状态已完成或不存在"
 							+ "，实例ID：" + instance.getInstanceId()
 							+ "，根实例ID：" + rootInstanceId);
 		}
@@ -248,7 +248,7 @@ public class WorkFlowServiceImpl implements WorkFlowService {
 	public void changeNodeComplete(WorkFlowNode node) {
 		int rows = config.repository().changeNodeComplete(node.getNodeId(), node.getRootInstanceId(), node.getVersion());
 		if (rows != 1) {
-			throw new WorkFlowConcurrencyTransactionException("节点状态已完成或不存在"
+			throw new ConcurrencyException("节点状态已完成或不存在"
 							+ "，节点编码：" + node.getNodeCode()
 							+ "，根实例ID：" + node.getRootInstanceId());
 		}
@@ -268,7 +268,7 @@ public class WorkFlowServiceImpl implements WorkFlowService {
 	public void changeInstanceStop(WorkFlowInstance instance) {
 		int rows = config.repository().changeInstanceStop(instance.getInstanceId(), instance.getInstanceId());
 		if (rows != 1) {
-			throw new WorkFlowConcurrencyTransactionException("实例状态1⃣已停止或不存在"
+			throw new ConcurrencyException("实例状态1⃣已停止或不存在"
 							+ "，实例ID：" + instance.getInstanceId());
 		}
 	}

@@ -4,30 +4,14 @@
  * License: GNU GENERAL PUBLIC LICENSE, Version 3, 29 June 2007
  * See the license.txt file in the root directory or see <http://www.gnu.org/licenses/>.
  */
-package group.devtool.workflow.engine;
+package group.devtool.workflow.engine.exception;
 
-import java.io.Closeable;
+/**
+ * 流程存储事务异常
+ */
+public class TransactionException extends WorkFlowRuntimeException {
 
-
-public interface WorkFlowScheduler extends Closeable {
-
-  boolean ready();
-
-  void addTask(DelayItem item);
-
-  /**
-   * 延时事项接口
-   */
-  interface DelayItem {
-
-    /**
-     * @return 延时时间
-     */
-    Long getDelay() ;
-
-    /**
-     */
-    void run();
-  }
-
+	public TransactionException(String message) {
+		super(message);
+	}
 }

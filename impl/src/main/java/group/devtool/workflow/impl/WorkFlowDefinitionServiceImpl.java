@@ -8,11 +8,9 @@ package group.devtool.workflow.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import group.devtool.workflow.engine.definition.*;
@@ -96,7 +94,7 @@ public class WorkFlowDefinitionServiceImpl implements WorkFlowDefinitionService 
 	 * 这里注意在数据库层面增加code， version唯一索引，防止并发插入
 	 */
 	@Override
-	public void deploy(WorkFlowDefinition definition) throws WorkFlowTransactionException {
+	public void deploy(WorkFlowDefinition definition) throws TransactionException {
 		// 父子流程定义展开
 		List<WorkFlowDefinitionEntity> deploying = toEntity(definition);
 
@@ -139,10 +137,10 @@ public class WorkFlowDefinitionServiceImpl implements WorkFlowDefinitionService 
 	}
 
 	@Override
-	public void undeploy(String code) throws WorkFlowTransactionException {
+	public void undeploy(String code) throws TransactionException {
 		int rows = config.definitionRepository().undeploy(code, "N", "Y");
 		if (rows == 0) {
-			throw new WorkFlowConcurrencyTransactionException("卸载流程定义异常，流程定义状态已改变。流程定义编码：" + code);
+			throw new ConcurrencyException("卸载流程定义异常，流程定义状态已改变。流程定义编码：" + code);
 		}
 	}
 

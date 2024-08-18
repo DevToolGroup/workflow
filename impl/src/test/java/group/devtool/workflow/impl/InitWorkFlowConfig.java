@@ -12,7 +12,6 @@ import java.sql.Statement;
 import java.util.function.Supplier;
 
 import group.devtool.workflow.engine.WorkFlowTransaction;
-import group.devtool.workflow.engine.exception.WorkFlowException;
 import group.devtool.workflow.impl.mapper.WorkFlowMapper;
 import group.devtool.workflow.impl.repository.WorkFlowDefinitionRepository;
 import group.devtool.workflow.impl.repository.WorkFlowRepository;
@@ -163,9 +162,6 @@ public abstract class InitWorkFlowConfig {
 		dbConfig.setFactory(new WorkFlowFactory());
 		dbConfig.setRepository(new WorkFlowRepository());
 		dbConfig.setSchedulerRepository(new WorkFlowSchedulerRepository());
-		//    WorkFlowSchedulerImpl scheduler = new WorkFlowSchedulerImpl();
-		//    scheduler.start();
-		//    dbConfig.setTaskScheduler(scheduler);
 		dbConfig.setService(new WorkFlowServiceImpl());
 		dbConfig.setCallback(new WorkFlowCallback.EmptyWorkFlowCallback());
 	}
@@ -186,14 +182,14 @@ public abstract class InitWorkFlowConfig {
 		}
 
 		@Override
-		public <T> T doInTransaction(WorkFlowTransactionOperate<T> operate) throws WorkFlowException {
+		public <T> T doInTransaction(WorkFlowTransactionOperate<T> operate) {
 			SqlSession session = factory.openSession();
 			SESSION.set(session);
 			T result = null;
 			try {
 				result = operate.apply();
 				session.commit();
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				session.rollback();
 				throw e;
 			} finally {
@@ -205,12 +201,9 @@ public abstract class InitWorkFlowConfig {
 
 		public Supplier<WorkFlowMapper> supplier() {
 
-			return new Supplier<WorkFlowMapper>() {
-				@Override
-				public WorkFlowMapper get() {
-					SqlSession session = SESSION.get();
-					return configuration.getMapper(WorkFlowMapper.class, session);
-				}
+			return () -> {
+				SqlSession session = SESSION.get();
+				return configuration.getMapper(WorkFlowMapper.class, session);
 			};
 		}
 

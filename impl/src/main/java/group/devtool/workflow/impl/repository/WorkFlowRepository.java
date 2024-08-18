@@ -6,7 +6,7 @@
  */
 package group.devtool.workflow.impl.repository;
 
-import group.devtool.workflow.engine.exception.WorkFlowConcurrencyTransactionException;
+import group.devtool.workflow.engine.exception.ConcurrencyException;
 import group.devtool.workflow.impl.WorkFlowConfigurationImpl;
 import group.devtool.workflow.impl.entity.WorkFlowNodeEntity;
 import group.devtool.workflow.impl.entity.WorkFlowInstanceEntity;
@@ -156,7 +156,7 @@ public class WorkFlowRepository {
 	public void lockNode(String nodeId, String rootInstanceId, Integer version) {
 		int rows = config.mapper().lockNode(nodeId, rootInstanceId, version);
 		if (rows == 0) {
-			throw new WorkFlowConcurrencyTransactionException("节点并发操作异常。节点ID：" + nodeId);
+			throw new ConcurrencyException("节点并发操作异常。节点ID：" + nodeId);
 		}
 	}
 

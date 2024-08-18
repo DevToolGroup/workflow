@@ -7,7 +7,7 @@
 package group.devtool.workflow.engine.exception;
 
 
-public class NotFoundWorkFlowTask extends WorkFlowException {
+public class NotFoundWorkFlowTask extends WorkFlowRuntimeException {
 
   public NotFoundWorkFlowTask(String message) {
     super(message);

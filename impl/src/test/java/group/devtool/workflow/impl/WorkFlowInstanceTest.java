@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import group.devtool.workflow.engine.WorkFlowContext;
-import group.devtool.workflow.engine.exception.WorkFlowException;
 import group.devtool.workflow.impl.definition.*;
 import group.devtool.workflow.impl.runtime.ParentWorkFlowInstanceImpl;
 import org.junit.Assert;
@@ -30,7 +29,7 @@ import group.devtool.workflow.impl.definition.UserWorkFlowNodeDefinitionImpl.Use
 public class WorkFlowInstanceTest extends InitWorkFlowConfig {
 
 	@Test
-	public void testInstance() throws WorkFlowException {
+	public void testInstance() {
 
 		WorkFlowContextImpl context = new WorkFlowContextImpl("simple_instance_run");
 		context.addRuntimeVariable(WorkFlowVariable.global(WorkFlowContext.USER, "admin"));

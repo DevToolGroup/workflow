@@ -7,7 +7,7 @@
 package group.devtool.workflow.impl;
 
 import group.devtool.workflow.engine.*;
-import group.devtool.workflow.engine.exception.ConfigException;
+import group.devtool.workflow.engine.exception.ConfigurationException;
 import group.devtool.workflow.impl.mapper.WorkFlowMapper;
 import group.devtool.workflow.impl.repository.WorkFlowDefinitionRepository;
 import group.devtool.workflow.impl.repository.WorkFlowRepository;
@@ -23,8 +23,6 @@ public final class WorkFlowConfigurationImpl extends WorkFlowConfiguration {
   public static final WorkFlowConfigurationImpl CONFIG = new WorkFlowConfigurationImpl();
 
   private WorkFlowDefinitionRepository definitionRepository;
-
-  private WorkFlowIdSupplier supplier;
 
   private WorkFlowSchedulerRepository schedulerRepository;
 
@@ -42,7 +40,7 @@ public final class WorkFlowConfigurationImpl extends WorkFlowConfiguration {
 
   public WorkFlowDefinitionRepository definitionRepository() {
     if (null == dbTransaction()) {
-      throw new ConfigException("数据库事务管理器未设置");
+      throw new ConfigurationException("数据库事务管理器未设置");
     }
     return definitionRepository;
   }
@@ -55,22 +53,12 @@ public final class WorkFlowConfigurationImpl extends WorkFlowConfiguration {
     return WorkFlowDefinitionFactory.DEFINITION;
   }
 
-  public WorkFlowIdSupplier idSupplier() {
-    if (null == dbTransaction()) {
-      throw new ConfigException("数据库事务管理器未设置");
-    }
-    return supplier;
-  }
-  public void setSupplier(WorkFlowIdSupplierImpl supplier) {
-    this.supplier = supplier;
-  }
-
   public WorkFlowSchedulerRepository schedulerRepository() {
     if (null == dbTransaction()) {
-      throw new ConfigException("数据库事务管理器未设置");
+      throw new ConfigurationException("数据库事务管理器未设置");
     }
     if (null == schedulerRepository) {
-      throw new ConfigException("延时调度服务未设置");
+      throw new ConfigurationException("延时调度服务未设置");
     }
     return schedulerRepository;
   }
@@ -85,7 +73,7 @@ public final class WorkFlowConfigurationImpl extends WorkFlowConfiguration {
 
   public WorkFlowRepository repository() {
     if (null == dbTransaction()) {
-      throw new ConfigException("数据库事务管理器未设置");
+      throw new ConfigurationException("数据库事务管理器未设置");
     }
     return repository;
   }
@@ -96,17 +84,17 @@ public final class WorkFlowConfigurationImpl extends WorkFlowConfiguration {
 
   public WorkFlowDefinitionService definitionService() {
     if (null == dbTransaction()) {
-      throw new ConfigException("数据库事务管理器未设置");
+      throw new ConfigurationException("数据库事务管理器未设置");
     }
     if (null == definitionRepository) {
-      throw new ConfigException("流程定义存储服务未设置");
+      throw new ConfigurationException("流程定义存储服务未设置");
     }
     return super.definitionService();
   }
 
   public WorkFlowFactory factory() {
     if (null == supplier) {
-      throw new ConfigException("流程ID生成器未设置");
+      throw new ConfigurationException("流程ID生成器未设置");
     }
     return factory;
   }

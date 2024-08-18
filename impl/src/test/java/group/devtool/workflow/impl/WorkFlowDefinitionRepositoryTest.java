@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import group.devtool.workflow.engine.exception.WorkFlowException;
 import group.devtool.workflow.impl.entity.WorkFlowDefinitionEntity;
 import group.devtool.workflow.impl.entity.WorkFlowLinkDefinitionEntity;
 import group.devtool.workflow.impl.entity.WorkFlowNodeDefinitionEntity;
@@ -22,7 +21,7 @@ import org.junit.Test;
 public class WorkFlowDefinitionRepositoryTest extends InitWorkFlowConfig {
 
   @Test
-  public void testBulkSave() throws WorkFlowException {
+  public void testBulkSave() {
     List<WorkFlowDefinitionEntity> entities = new ArrayList<>();
     WorkFlowDefinitionEntity entity = new WorkFlowDefinitionEntity();
     entity.setCode("test");
@@ -40,7 +39,7 @@ public class WorkFlowDefinitionRepositoryTest extends InitWorkFlowConfig {
 	}
 
   @Test
-  public void testLoadDefinition() throws WorkFlowException {
+  public void testLoadDefinition() {
 		List<WorkFlowDefinitionEntity> entities = getWorkFlowDefinitionEntities();
 		dbConfig.dbTransaction().doInTransaction(() -> {
 			dbConfig.definitionRepository().bulkSave(entities);
@@ -75,7 +74,7 @@ public class WorkFlowDefinitionRepositoryTest extends InitWorkFlowConfig {
 	}
 
 	@Test
-  public void testLoadDeployedDefinition() throws WorkFlowException {
+  public void testLoadDeployedDefinition() {
 		dbConfig.dbTransaction().doInTransaction(() -> {
 			List<WorkFlowDefinitionEntity> entities = new ArrayList<>();
 			WorkFlowDefinitionEntity entity = new WorkFlowDefinitionEntity();
@@ -98,7 +97,7 @@ public class WorkFlowDefinitionRepositoryTest extends InitWorkFlowConfig {
 	}
 
   @Test
-  public void testLoadDefinitionVersion() throws WorkFlowException {
+  public void testLoadDefinitionVersion() {
 		dbConfig.dbTransaction().doInTransaction(() -> {
 			List<WorkFlowDefinitionEntity> entities = new ArrayList<>();
 			WorkFlowDefinitionEntity entity = new WorkFlowDefinitionEntity();
@@ -120,7 +119,7 @@ public class WorkFlowDefinitionRepositoryTest extends InitWorkFlowConfig {
 	}
 
   @Test
-  public void testLoadNodeDefinition() throws WorkFlowException {
+  public void testLoadNodeDefinition() {
     List<WorkFlowNodeDefinitionEntity> nodes = new ArrayList<>();
     WorkFlowNodeDefinitionEntity node = new WorkFlowNodeDefinitionEntity();
     node.setName("start");
@@ -141,7 +140,7 @@ public class WorkFlowDefinitionRepositoryTest extends InitWorkFlowConfig {
 	}
 
   @Test
-  public void testLoadLinkDefinition() throws WorkFlowException {
+  public void testLoadLinkDefinition() {
     List<WorkFlowLinkDefinitionEntity> links = new ArrayList<>();
     WorkFlowLinkDefinitionEntity link = new WorkFlowLinkDefinitionEntity();
 		link.setCode("start");

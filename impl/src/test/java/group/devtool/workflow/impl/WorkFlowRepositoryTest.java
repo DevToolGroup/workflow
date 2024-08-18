@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import group.devtool.workflow.engine.common.JacksonUtils;
-import group.devtool.workflow.engine.exception.WorkFlowException;
 import group.devtool.workflow.impl.entity.WorkFlowInstanceEntity;
 import group.devtool.workflow.impl.entity.WorkFlowNodeEntity;
 import group.devtool.workflow.impl.entity.WorkFlowTaskEntity;
@@ -21,7 +20,7 @@ import org.junit.Test;
 public class WorkFlowRepositoryTest extends InitWorkFlowConfig {
 
 	@Test
-	public void testBulkSaveVariable() throws WorkFlowException {
+	public void testBulkSaveVariable() {
 
 		List<WorkFlowVariableEntity> entities = new ArrayList<>();
 		entities.add(buildVariableEntity("test"));
@@ -39,7 +38,7 @@ public class WorkFlowRepositoryTest extends InitWorkFlowConfig {
 	}
 
 	@Test
-	public void testSaveAndGetInstance() throws WorkFlowException {
+	public void testSaveAndGetInstance() {
 		WorkFlowInstanceEntity entity = new WorkFlowInstanceEntity();
 		entity.setDefinitionCode("test");
 		entity.setRootDefinitionCode("test");
@@ -66,7 +65,7 @@ public class WorkFlowRepositoryTest extends InitWorkFlowConfig {
 	}
 
 	@Test
-	public void testSaveAndGetTask() throws WorkFlowException {
+	public void testSaveAndGetTask() {
 		List<WorkFlowTaskEntity> tasks = new ArrayList<>();
 		WorkFlowTaskEntity task = new WorkFlowTaskEntity();
 		task.setTaskId("taskId1");
@@ -98,7 +97,7 @@ public class WorkFlowRepositoryTest extends InitWorkFlowConfig {
 	}
 
 	@Test
-	public void testChangeTaskComplete() throws WorkFlowException {
+	public void testChangeTaskComplete() {
 		List<WorkFlowTaskEntity> tasks = new ArrayList<>();
 		WorkFlowTaskEntity task = new WorkFlowTaskEntity();
 		task.setTaskId("taskId2");
@@ -122,7 +121,7 @@ public class WorkFlowRepositoryTest extends InitWorkFlowConfig {
 	}
 
 	@Test
-	public void testChangeNodeComplete() throws WorkFlowException {
+	public void testChangeNodeComplete() {
 		WorkFlowNodeEntity node = new WorkFlowNodeEntity();
 		node.setConfig(serialize("user"));
 		node.setNodeId("nodeCode3");
