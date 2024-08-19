@@ -2,15 +2,17 @@ package group.devtool.workflow.engine.operation;
 
 import group.devtool.workflow.engine.*;
 import group.devtool.workflow.engine.runtime.WorkFlowInstance;
+import lombok.Getter;
 
+@Getter
 public class StopWorkFlowOperation implements WorkFlowOperation {
 
-	private final String instanceId;
+	private final String rootInstanceId;
 
 	private final WorkFlowContextImpl context;
 
 	public StopWorkFlowOperation(String instanceId, WorkFlowContextImpl context) {
-		this.instanceId = instanceId;
+		this.rootInstanceId = instanceId;
 		this.context = context;
 	}
 
@@ -19,11 +21,11 @@ public class StopWorkFlowOperation implements WorkFlowOperation {
 		WorkFlowConfiguration config = dispatch.getConfig();
 		WorkFlowService service = config.service();
 
-		WorkFlowInstance instance = service.getInstance(instanceId, instanceId);
+		WorkFlowInstance instance = service.getInstance(rootInstanceId, rootInstanceId);
 
 		instance.stop();
 		service.changeInstanceStop(instance);
-		context.setInstanceId(instanceId);
+		context.setInstanceId(rootInstanceId);
 
 		dispatch.addCallback(WorkFlowCallback.WorkFlowEvent.STOP, context);
 	}

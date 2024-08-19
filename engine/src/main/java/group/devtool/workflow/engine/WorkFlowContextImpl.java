@@ -28,30 +28,21 @@ public class WorkFlowContextImpl implements WorkFlowContext {
 
     private final String rootInstanceId;
 
-    private final List<WorkFlowVariable> variables;
-
     private final Map<String, Serializable> globalVariables;
 
-    private final List<WorkFlowVariable> runtimeVariables;
+    private final transient List<WorkFlowVariable> runtimeVariables;
 
     public WorkFlowContextImpl(String rootInstanceId, WorkFlowVariable... variables) {
         this(rootInstanceId);
         for (WorkFlowVariable variable : variables) {
-            this.variables.add(variable);
             this.globalVariables.put(variable.getName(), variable.getValue());
         }
     }
 
     public WorkFlowContextImpl(String rootInstanceId) {
         this.rootInstanceId = rootInstanceId;
-        this.variables = new ArrayList<>();
         this.globalVariables = new HashMap<>();
         this.runtimeVariables = new ArrayList<>();
-    }
-
-    @Override
-    public List<WorkFlowVariable> getVariables() {
-        return variables;
     }
 
     @Override
@@ -70,10 +61,8 @@ public class WorkFlowContextImpl implements WorkFlowContext {
         runtimeVariables.clear();
     }
 
-
     public synchronized void addRuntimeVariable(WorkFlowVariable... vars) {
         for (WorkFlowVariable variable : vars) {
-            variables.add(variable);
             globalVariables.put(variable.getName(), variable.getValue());
             runtimeVariables.add(variable);
         }

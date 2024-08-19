@@ -75,6 +75,8 @@ public interface WorkFlowOperation extends Serializable {
         return new StopWorkFlowOperation(rootInstanceId, context);
     }
 
+    String getRootInstanceId();
+
     void operate(WorkFlowDispatch dispatch) throws OperationException;
 
 }

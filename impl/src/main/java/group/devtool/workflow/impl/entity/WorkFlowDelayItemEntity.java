@@ -15,59 +15,65 @@ import group.devtool.workflow.impl.WorkFlowConfigurationImpl;
  */
 public class WorkFlowDelayItemEntity implements DelayItem {
 
-	private Long delay;
+    private Long id;
 
-	private String itemId;
+    private Long delay;
 
-	private String taskId;
+    private String itemId;
 
-	private String rootInstanceId;
+    private String taskId;
 
-	public WorkFlowDelayItemEntity() {
+    private String rootInstanceId;
 
-	}
+    public WorkFlowDelayItemEntity() {
 
-	public WorkFlowDelayItemEntity(Long delay, String taskId, String rootInstanceId) {
-		this.delay = delay;
-		this.taskId = taskId;
-		this.rootInstanceId = rootInstanceId;
-	}
+    }
 
-	public String getTaskId() {
-		return taskId;
-	}
+    public WorkFlowDelayItemEntity(Long delay, String taskId, String rootInstanceId) {
+        this.delay = delay;
+        this.taskId = taskId;
+        this.rootInstanceId = rootInstanceId;
+    }
 
-	public String getRootInstanceId() {
-		return rootInstanceId;
-	}
+    public String getTaskId() {
+        return taskId;
+    }
 
-	@Override
-	public Long getDelay() {
-		return delay;
-	}
+    public String getRootInstanceId() {
+        return rootInstanceId;
+    }
 
-	public String getItemId() {
-		return itemId;
-	}
+    @Override
+    public Long getDelay() {
+        return delay;
+    }
 
-	public void setItemId(String itemId) {
-		this.itemId = itemId;
-	}
+    public String getItemId() {
+        return itemId;
+    }
 
-	public void setDelay(Long delay) {
-		this.delay = delay;
-	}
+    public void setItemId(String itemId) {
+        this.itemId = itemId;
+    }
 
-	public void setTaskId(String taskId) {
-		this.taskId = taskId;
-	}
+    public void setDelay(Long delay) {
+        this.delay = delay;
+    }
 
-	public void setRootInstanceId(String rootInstanceId) {
-		this.rootInstanceId = rootInstanceId;
-	}
+    public void setTaskId(String taskId) {
+        this.taskId = taskId;
+    }
 
-	@Override
-	public void run() {
-		new WorkFlowEngine(WorkFlowConfigurationImpl.CONFIG).run(rootInstanceId, taskId);
-	}
+    public void setRootInstanceId(String rootInstanceId) {
+        this.rootInstanceId = rootInstanceId;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    @Override
+    public void run() {
+        new WorkFlowEngine(WorkFlowConfigurationImpl.CONFIG).run(rootInstanceId, taskId);
+    }
 }

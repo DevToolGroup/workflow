@@ -7,13 +7,18 @@
 package group.devtool.workflow.engine.common;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import group.devtool.workflow.engine.exception.DeserializeException;
 import group.devtool.workflow.engine.exception.SerializeException;
 
 public final class JacksonUtils {
 
-	private final static ObjectMapper MAPPER = new ObjectMapper();
+	private static final ObjectMapper MAPPER = new ObjectMapper();
+
+	private JacksonUtils() {
+
+	}
 
 	public static String serialize(Object value) throws SerializeException {
 		try {
@@ -26,6 +31,14 @@ public final class JacksonUtils {
 	public static <T> T deserialize(String value, Class<T> clazz) throws DeserializeException {
 		try {
 			return MAPPER.readValue(value, clazz);
+		} catch (JsonProcessingException e) {
+			throw new DeserializeException("参数反序列化异常：" + e.getMessage());
+		}
+	}
+
+	public static <T> T deserialize(String value) throws DeserializeException {
+		try {
+			return MAPPER.readValue(value, new TypeReference<T>() {});
 		} catch (JsonProcessingException e) {
 			throw new DeserializeException("参数反序列化异常：" + e.getMessage());
 		}

@@ -20,37 +20,42 @@ import java.util.Map;
  */
 public class SPELWorkFlowLinkDefinitionImpl extends AbstractWorkFlowLinkDefinition {
 
-  private final String source;
+    private final String source;
 
-  private final String expressionString;
+    private final String expressionString;
 
-  public SPELWorkFlowLinkDefinitionImpl(String code, String source, String target) {
-    this(code, source, target, null);
-  }
+    public SPELWorkFlowLinkDefinitionImpl(String code, String source, String target) {
+        this(code, source, target, null);
+    }
 
-  public SPELWorkFlowLinkDefinitionImpl(String code, String source, String target, String expression) {
-    super(code, source, target, expression);
-    this.source = source;
-    this.expressionString = expression;
-  }
+    public SPELWorkFlowLinkDefinitionImpl(String code, String source, String target, String expression) {
+        super(code, source, target, expression);
+        this.source = source;
+        this.expressionString = expression;
+    }
 
-  public SPELWorkFlowLinkDefinitionImpl(WorkFlowLinkDefinitionEntity entity) {
-    super(entity.getCode(), entity.getSource(), entity.getTarget(), entity.getExpression());
-    this.source = entity.getSource();
-    this.expressionString = entity.getExpression();
-  }
+    public SPELWorkFlowLinkDefinitionImpl(WorkFlowLinkDefinitionEntity entity) {
+        super(entity.getCode(), entity.getSource(), entity.getTarget(), entity.getExpression());
+        this.source = entity.getSource();
+        this.expressionString = entity.getExpression();
+    }
 
-  @Override
-  protected boolean parseExpression(String expression, WorkFlowContextImpl context) {
-		Map<String, Object> variables = new HashMap<>(context.getVariableMap());
-    return SpelExpressionUtil.getValue(expression, variables);
-  }
+    @Override
+    protected boolean parseExpression(String expression, WorkFlowContextImpl context) {
+        Map<String, Object> variables = new HashMap<>(context.getVariableMap());
+        return SpelExpressionUtil.getValue(expression, variables);
+    }
 
-  public String getParser() {
-    return "SPEL";
-  }
+    @Override
+    public String getSource() {
+        return source;
+    }
 
-  public String getExpression() {
-    return expressionString;
-  }
+    public String getParser() {
+        return "SPEL";
+    }
+
+    public String getExpression() {
+        return expressionString;
+    }
 }

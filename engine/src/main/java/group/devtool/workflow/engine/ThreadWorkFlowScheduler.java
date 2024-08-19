@@ -9,8 +9,6 @@ package group.devtool.workflow.engine;
 import group.devtool.workflow.engine.exception.WorkFlowRuntimeException;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -19,94 +17,82 @@ import java.util.concurrent.Executors;
 @Slf4j
 public abstract class ThreadWorkFlowScheduler implements WorkFlowDelayTaskScheduler, Runnable {
 
-	private final ExecutorService pool;
+    private final Object wait = new Object();
+    private final ExecutorService pool;
+    private final ArrayBlockingQueue<DelayItem> queue;
+    private final int corePoolSize;
+    private volatile boolean ready = false;
 
-	private final ArrayBlockingQueue<DelayItem> queue;
+    protected ThreadWorkFlowScheduler(int corePoolSize) {
+        this.corePoolSize = corePoolSize;
+        queue = new ArrayBlockingQueue<>(64);
+        pool = Executors.newFixedThreadPool(corePoolSize + 1);
+    }
 
-	private final Object lock = new Object();
+    public boolean ready() {
+        return ready;
+    }
 
-	private volatile boolean ready = false;
+    public void start() {
+        ready = true;
+        pool.execute(() -> {
+            boolean running = true;
+            while (running) {
+                try {
+                    List<DelayItem> tasks = loadTask();
+                    if (tasks.isEmpty()) {
+                        sleep();
+                    } else {
+                        queue.addAll(tasks);
+                    }
+                } catch (InterruptedException e) {
+                    running = false;
+                    log.error("线程中断...", e);
+                    Thread.currentThread().interrupt();
+                } catch (Exception e) {
+                    log.error("加载延时任务异常. 异常堆栈: ", e);
+                    running = false;
+                }
+            }
+        });
+        for (int i = 0; i < corePoolSize; i++) {
+            pool.execute(this);
+        }
+    }
 
-	public ThreadWorkFlowScheduler(int corePoolSize) {
-		queue = new ArrayBlockingQueue<>(64);
-		pool = Executors.newFixedThreadPool(corePoolSize + 1);
-		pool.execute(() -> {
-			synchronized (lock) {
-				try {
-					lock.wait();
-				} catch (InterruptedException e) {
-					return;
-				}
-			}
-			boolean running = true;
-			do {
-				List<DelayItem> tasks = new ArrayList<>();
-				tasks = loadTask();
-				if (tasks.isEmpty()) {
-					running = sleep();
-				}
-				for (DelayItem task : tasks) {
-					if (queue.size() > 32) {
-						running = sleep();
-					}
-					queue.add(task);
-				}
-			} while (running);
-		});
-		for (int i = 0; i < corePoolSize; i++) {
-			pool.execute(this);
-		}
-	}
+    protected abstract List<DelayItem> loadTask();
 
-	public boolean ready() {
-		return ready;
-	}
+    private synchronized void sleep() throws InterruptedException {
+        while (queue.size() > 32) {
+            wait.wait(1000);
+        }
+    }
 
-	public void start() {
-		synchronized (lock) {
-			lock.notifyAll();
-			ready = true;
-		}
-	}
+    @Override
+    public void run() {
+        do {
+            DelayItem item;
+            try {
+                item = queue.take();
+            } catch (InterruptedException e) {
+                log.error("线程中断...", e);
+                Thread.currentThread().interrupt();
+                break;
+            }
+            try {
+                item.run();
+                delayAfter(item);
+            } catch (WorkFlowRuntimeException e) {
+                log.error("延时任务执行异常. 异常堆栈: ", e);
+            }
+        } while (true);
+    }
 
-	protected abstract List<DelayItem> loadTask();
+    protected abstract void delayAfter(DelayItem item);
 
-	private synchronized boolean sleep() {
-		boolean running = true;
-		try {
-			wait(1000);
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			running = false;
-		}
-		return running;
-	}
-
-	@Override
-	public void run() {
-		do {
-			DelayItem item = null;
-			try {
-				item = queue.take();
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				break;
-			}
-			try {
-				item.run();
-				delayAfter(item);
-			} catch (WorkFlowRuntimeException e) {
-				// continue to next task
-				log.error("WorkFlowRuntimeException: {}", e.getMessage());
-			}
-		} while (true);
-	}
-
-	protected abstract void delayAfter(DelayItem item);
-
-	@Override
-	public void close() throws IOException {
-		pool.shutdown();
-	}
+    @Override
+    public void close() {
+        pool.shutdown();
+    }
 
 }

@@ -30,7 +30,6 @@
         <result column="target" property="target"/>
         <result column="expression" property="expression"/>
         <result column="parser" property="parser"/>
-        <result column="config" property="config"/>
         <result column="version" property="version"/>
         <result column="definition_code" property="definitionCode"/>
         <result column="root_definition_code" property="rootDefinitionCode"/>
@@ -125,19 +124,19 @@
 
     <update id="changeState">
         update
-            wf_definition
+        wf_definition
         set
-            state = #{afterState}
+        state = #{afterState}
         where
-            root_code = #{code}
-            and state = #{beforeState}
+        root_code = #{code}
+        and state = #{beforeState}
     </update>
 
     <select id="loadDefinition" resultMap="definition">
         select
-            id, code, name, version, state, node_code, root_code
+        id, code, name, version, state, node_code, root_code
         from
-            wf_definition
+        wf_definition
         where
         <choose>
             <when test="recursion == true">
@@ -153,23 +152,23 @@
 
     <select id="loadDeployedDefinition" resultMap="definition">
         select
-            id, code, name, version, state, node_code, root_code
+        id, code, name, version, state, node_code, root_code
         from
-            wf_definition
+        wf_definition
         where
-            code = #{code}
-            and state = 'Y'
-            and root_code = #{code}
+        code = #{code}
+        and state = 'Y'
+        and root_code = #{code}
     </select>
 
     <select id="loadDefinitionLatestVersion" resultType="java.lang.Integer">
         select
-            max(version)
+        max(version)
         from
-            wf_definition
+        wf_definition
         where
-            code = #{code}
-            and root_code = #{rootCode}
+        code = #{code}
+        and root_code = #{rootCode}
     </select>
 
     <select id="loadNodeDefinition" resultMap="nodeDefinition">
@@ -192,9 +191,9 @@
 
     <select id="loadLinkDefinition" resultMap="linkDefinition">
         select
-            id, code, source, target, parser, expression, version, definition_code, root_definition_code
+        id, code, source, target, parser, expression, version, definition_code, root_definition_code
         from
-            wf_link_definition
+        wf_link_definition
         where
         <choose>
             <when test="recursion == true">
@@ -210,7 +209,7 @@
 
     <select id="loadVariable" resultMap="variable">
         select
-            id, name, `value`, `type`, root_instance_id
+        id, name, `value`, `type`, root_instance_id
         from wf_instance_variable
         where root_instance_id = #{instanceId}
         order by id asc
@@ -228,7 +227,8 @@
 
     <select id="loadInstance" resultMap="instance">
         select
-        id, state, scope, definition_code, definition_version, root_definition_code, instance_id, parent_task_id, root_instance_id
+        id, state, scope, definition_code, definition_version, root_definition_code, instance_id, parent_task_id,
+        root_instance_id
         from
         wf_instance
         where instance_id = #{instanceId} and root_instance_id = #{rootInstanceId}
@@ -259,54 +259,55 @@
 
     <select id="loadActiveTask" resultMap="task">
         select
-            id, task_id, task_class, task_state, complete_user, complete_time, config, node_id, node_code,
-            instance_id, root_instance_id
+        id, task_id, task_class, task_state, complete_user, complete_time, config, node_id, node_code,
+        instance_id, root_instance_id
         from
-            wf_instance_task
+        wf_instance_task
         where
-            root_instance_id = #{rootInstanceId}
-            and task_state = 'DOING'
+        root_instance_id = #{rootInstanceId}
+        and task_state = 'DOING'
     </select>
 
     <select id="loadNodeById" resultMap="node">
         select
-            id, node_id, node_code, node_class, node_state, config, version, instance_id, root_instance_id
+        id, node_id, node_code, node_class, node_state, config, version, instance_id, root_instance_id
         from
-            wf_instance_node
+        wf_instance_node
         where
-            root_instance_id = #{rootInstanceId}
-            and node_id = #{nodeId}
+        root_instance_id = #{rootInstanceId}
+        and node_id = #{nodeId}
     </select>
 
     <!-- only test -->
     <select id="loadActiveNodeByCode" resultMap="node">
         select
-            id, node_id, node_code, node_class, node_state, config, version, instance_id, root_instance_id
+        id, node_id, node_code, node_class, node_state, config, version, instance_id, root_instance_id
         from
-            wf_instance_node
+        wf_instance_node
         where
-            root_instance_id = #{rootInstanceId}
-            and node_code = #{nodeCode}
-            and node_state = 'DOING'
+        root_instance_id = #{rootInstanceId}
+        and node_code = #{nodeCode}
+        and node_state = 'DOING'
     </select>
 
     <!-- only test -->
     <select id="loadChildActiveNodeByCode" resultMap="node">
         select
-            id, node_id, node_code, node_class, node_state, config, version, instance_id, root_instance_id
+        id, node_id, node_code, node_class, node_state, config, version, instance_id, root_instance_id
         from
-            wf_instance_node
+        wf_instance_node
         where
-            root_instance_id = #{rootInstanceId}
-            and instance_id = #{instanceId}
-            and node_code = #{nodeCode}
-            and node_state = 'DOING'
+        root_instance_id = #{rootInstanceId}
+        and instance_id = #{instanceId}
+        and node_code = #{nodeCode}
+        and node_state = 'DOING'
     </select>
 
     <!-- only test -->
     <select id="loadParentInstance" resultMap="instance">
         select
-        id, state, scope, definition_code, definition_version, root_definition_code, instance_id, parent_task_id, root_instance_id
+        id, state, scope, definition_code, definition_version, root_definition_code, instance_id, parent_task_id,
+        root_instance_id
         from
         wf_instance
         where parent_task_id = #{parentTaskId} and root_instance_id = #{instanceId}
@@ -314,26 +315,26 @@
 
     <update id="lockNode">
         update
-            wf_instance_node
+        wf_instance_node
         set
-            version = version + 1
+        version = version + 1
         where
-            node_id = #{nodeId}
-            and version = #{version}
-            and root_instance_id = #{rootInstanceId}
+        node_id = #{nodeId}
+        and version = #{version}
+        and root_instance_id = #{rootInstanceId}
     </update>
 
     <update id="changeTaskComplete">
         update
-            wf_instance_task
+        wf_instance_task
         set
-            task_state = 'DONE',
-            complete_user = #{completeUser},
-            complete_time = #{completeTime}
+        task_state = 'DONE',
+        complete_user = #{completeUser},
+        complete_time = #{completeTime}
         where
-            task_id = #{taskId}
-            and root_instance_id = #{rootInstanceId}
-            and task_state = 'DOING'
+        task_id = #{taskId}
+        and root_instance_id = #{rootInstanceId}
+        and task_state = 'DOING'
     </update>
 
     <insert id="saveNode" useGeneratedKeys="true" keyProperty="id"
@@ -356,8 +357,8 @@
         update
         wf_instance_node
         set
-            node_state = 'DONE',
-            version = version + 1
+        node_state = 'DONE',
+        version = version + 1
         where
         node_id = #{nodeId}
         and root_instance_id = #{rootInstanceId}
@@ -368,27 +369,28 @@
     <update id="changeInstanceComplete">
         update
         wf_instance
-            set state = 'DONE'
+        set state = 'DONE'
         where
-            instance_id = #{instanceId}
-            and root_instance_id = #{rootInstanceId}
-            and state = 'DOING'
+        instance_id = #{instanceId}
+        and root_instance_id = #{rootInstanceId}
+        and state = 'DOING'
     </update>
 
     <update id="changeInstanceStop">
         update
-            wf_instance
-            set state = 'STOP'
+        wf_instance
+        set state = 'STOP'
         where
-            instance_id = #{instanceId}
-            and root_instance_id = #{rootInstanceId}
-            and state = 'DOING'
+        instance_id = #{instanceId}
+        and root_instance_id = #{rootInstanceId}
+        and state = 'DOING'
     </update>
 
     <insert id="saveInstance" useGeneratedKeys="true" keyProperty="id"
             parameterType="group.devtool.workflow.impl.entity.WorkFlowInstanceEntity">
         insert into wf_instance
-        (instance_id, state, scope, parent_task_id, root_instance_id, definition_code, definition_version, root_definition_code)
+        (instance_id, state, scope, parent_task_id, root_instance_id, definition_code, definition_version,
+        root_definition_code)
         values
         (#{entity.instanceId},
         #{entity.state},
@@ -445,6 +447,45 @@
         where
         item_id = #{itemId}
         and root_instance_id = #{rootInstanceId}
+    </update>
+
+    <!-->流程操作相关<-->
+    <select id="loadFailOperation"
+            resultType="group.devtool.workflow.impl.entity.RetryWorkFlowOperationEntity">
+        select
+            *
+        from
+            wf_operation
+        where
+            status = -1
+            <if test="lastId != null">
+                and id &lt; #{lastId}
+            </if>
+        order by id desc
+    </select>
+
+
+    <insert id="batchSave">
+        insert into wf_operation (code, status, root_instance_id, type, instance_id, parameters, task_id, node_id, instance_ids)
+        values
+            <foreach collection="entities" separator="," item="entity" open="(" close=")">
+                #{entity.code},
+                #{entity.status},
+                #{entity.rootInstanceId},
+                #{entity.type},
+                #{entity.instanceId},
+                #{entity.parameters},
+                #{entity.taskId},
+                #{entity.nodeId},
+                #{entity.instanceIds}
+            </foreach>
+    </insert>
+
+    <update id="updateStatus">
+        update
+            wf_operation
+        set status = #{status}
+        where code = #{code} and status = #{beforeStatus}
     </update>
 
 </mapper>

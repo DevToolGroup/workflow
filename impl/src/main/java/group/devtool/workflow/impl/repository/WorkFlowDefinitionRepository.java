@@ -26,51 +26,51 @@ public class WorkFlowDefinitionRepository {
   }
 
   public void bulkSave(List<WorkFlowDefinitionEntity> entities) {
-    WorkFlowMapper mapper = config.mapper();
+    WorkFlowMapper mapper = config.getMapper();
     mapper.bulkSaveDefinition(entities);
   }
 
   public List<WorkFlowDefinitionEntity> loadDefinition(String code, String rootCode, Integer version, Boolean recursion) {
-    WorkFlowMapper mapper = config.mapper();
+    WorkFlowMapper mapper = config.getMapper();
     return mapper.loadDefinition(code, rootCode, version, recursion);
   }
 
   public WorkFlowDefinitionEntity loadDeployedDefinition(String code, String rootCode) {
-    WorkFlowMapper mapper = config.mapper();
+    WorkFlowMapper mapper = config.getMapper();
     return mapper.loadDeployedDefinition(code, rootCode);
   }
 
   public Integer loadDefinitionLatestVersion(String code, String rootCode) {
-    WorkFlowMapper mapper = config.mapper();
+    WorkFlowMapper mapper = config.getMapper();
     return mapper.loadDefinitionLatestVersion(code, rootCode);
   }
 
   public List<WorkFlowNodeDefinitionEntity> loadNodeDefinition(String definitionCode, String rootDefinitionCode,
                                                                Integer version,
                                                                Boolean recursion) {
-    WorkFlowMapper mapper = config.mapper();
+    WorkFlowMapper mapper = config.getMapper();
     return mapper.loadNodeDefinition(definitionCode, rootDefinitionCode, version, recursion);
   }
 
   public List<WorkFlowLinkDefinitionEntity> loadLinkDefinition(String definitionCode, String rootDefinitionCode,
                                                                Integer version,
                                                                Boolean recursion) {
-    WorkFlowMapper mapper = config.mapper();
+    WorkFlowMapper mapper = config.getMapper();
     return mapper.loadLinkDefinition(definitionCode, rootDefinitionCode, version, recursion);
   }
 
   public int undeploy(String code, String afterState, String beforeState) {
-    WorkFlowMapper mapper = config.mapper();
+    WorkFlowMapper mapper = config.getMapper();
     return mapper.changeState(code, afterState, beforeState);
   }
 
   public void bulkSaveNode(List<WorkFlowNodeDefinitionEntity> nodes) {
-    WorkFlowMapper mapper = config.mapper();
+    WorkFlowMapper mapper = config.getMapper();
     mapper.bulkSaveNodeDefinition(nodes);
   }
 
   public void bulkSaveLink(List<WorkFlowLinkDefinitionEntity> links) {
-    WorkFlowMapper mapper = config.mapper();
+    WorkFlowMapper mapper = config.getMapper();
     mapper.bulkSaveLinkDefinition(links);
   }
 

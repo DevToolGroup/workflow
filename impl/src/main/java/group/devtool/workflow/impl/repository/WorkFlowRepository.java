@@ -33,7 +33,7 @@ public class WorkFlowRepository {
 	 * @return 流程变量列表
 	 */
 	public List<WorkFlowVariableEntity> loadVariable(String instanceId) {
-		return config.mapper().loadVariable(instanceId);
+		return config.getMapper().loadVariable(instanceId);
 	}
 
 	/**
@@ -42,7 +42,7 @@ public class WorkFlowRepository {
 	 * @param entities 流程变量
 	 */
 	public void bulkSaveVariable(List<WorkFlowVariableEntity> entities) {
-		config.mapper().bulkSaveVariable(entities);
+		config.getMapper().bulkSaveVariable(entities);
 	}
 
 	/**
@@ -53,7 +53,7 @@ public class WorkFlowRepository {
 	 * @return 流程实例实体对象
 	 */
 	public WorkFlowInstanceEntity loadInstance(String instanceId, String rootInstanceId) {
-		return config.mapper().loadInstance(instanceId, rootInstanceId);
+		return config.getMapper().loadInstance(instanceId, rootInstanceId);
 	}
 
 	/**
@@ -64,7 +64,7 @@ public class WorkFlowRepository {
 	 * @return 流程任务实体列表
 	 */
 	public List<WorkFlowTaskEntity> loadTaskByNodeId(String nodeId, String rootInstanceId) {
-		return config.mapper().loadTaskByNodeId(nodeId, rootInstanceId);
+		return config.getMapper().loadTaskByNodeId(nodeId, rootInstanceId);
 	}
 
 	/**
@@ -75,7 +75,7 @@ public class WorkFlowRepository {
 	 * @return 流程任务实体
 	 */
 	public WorkFlowTaskEntity loadTaskById(String taskId, String rootInstanceId) {
-		return config.mapper().loadTaskByTaskId(taskId, rootInstanceId);
+		return config.getMapper().loadTaskByTaskId(taskId, rootInstanceId);
 	}
 
 	/**
@@ -86,7 +86,7 @@ public class WorkFlowRepository {
 	 * @return 流程节点
 	 */
 	public WorkFlowNodeEntity loadNode(String nodeId, String rootInstanceId) {
-		return config.mapper().loadNodeById(nodeId, rootInstanceId);
+		return config.getMapper().loadNodeById(nodeId, rootInstanceId);
 	}
 
 	/**
@@ -98,7 +98,7 @@ public class WorkFlowRepository {
 	 * @param rootInstanceId 根流程实例ID
 	 */
 	public int changeTaskComplete(String completeUser, Long completeTime, String taskId, String rootInstanceId) {
-		return config.mapper().changeTaskComplete(completeUser, completeTime, taskId, rootInstanceId);
+		return config.getMapper().changeTaskComplete(completeUser, completeTime, taskId, rootInstanceId);
 	}
 
 	/**
@@ -110,7 +110,7 @@ public class WorkFlowRepository {
 	 * @return 成功行数
 	 */
 	public int changeNodeComplete(String nodeId, String rootInstanceId, Integer version) {
-		return config.mapper().changeNodeComplete(nodeId, rootInstanceId, version);
+		return config.getMapper().changeNodeComplete(nodeId, rootInstanceId, version);
 	}
 
 	/**
@@ -121,7 +121,7 @@ public class WorkFlowRepository {
 	 * @return 成功行数
 	 */
 	public int changeInstanceComplete(String instanceId, String rootInstanceId) {
-		return config.mapper().changeInstanceComplete(instanceId, rootInstanceId);
+		return config.getMapper().changeInstanceComplete(instanceId, rootInstanceId);
 	}
 
 	/**
@@ -130,14 +130,14 @@ public class WorkFlowRepository {
 	 * @param entity 流程实例
 	 */
 	public void save(WorkFlowInstanceEntity entity) {
-		config.mapper().saveInstance(entity);
+		config.getMapper().saveInstance(entity);
 	}
 
 	/**
 	 * @param entity 流程节点实例
 	 */
 	public void save(WorkFlowNodeEntity entity) {
-		config.mapper().saveNode(entity);
+		config.getMapper().saveNode(entity);
 	}
 
 	/**
@@ -146,33 +146,33 @@ public class WorkFlowRepository {
 	 * @param entities 任务实例
 	 */
 	public void bulkSaveTask(List<WorkFlowTaskEntity> entities) {
-		config.mapper().bulkSaveTask(entities);
+		config.getMapper().bulkSaveTask(entities);
 	}
 
 	public List<WorkFlowTaskEntity> loadActiveTask(String rootInstanceId) {
-		return config.mapper().loadActiveTask(rootInstanceId);
+		return config.getMapper().loadActiveTask(rootInstanceId);
 	}
 
 	public void lockNode(String nodeId, String rootInstanceId, Integer version) {
-		int rows = config.mapper().lockNode(nodeId, rootInstanceId, version);
+		int rows = config.getMapper().lockNode(nodeId, rootInstanceId, version);
 		if (rows == 0) {
 			throw new ConcurrencyException("节点并发操作异常。节点ID：" + nodeId);
 		}
 	}
 
 	public int changeInstanceStop(String instanceId, String rootInstanceId) {
-		return config.mapper().changeInstanceStop(instanceId, rootInstanceId);
+		return config.getMapper().changeInstanceStop(instanceId, rootInstanceId);
 
 	}
 
 	@SuppressWarnings("only test")
 	public WorkFlowNodeEntity loadActiveNodeByCode(String code, String rootInstanceId) {
-		return config.mapper().loadActiveNodeByCode(code, rootInstanceId);
+		return config.getMapper().loadActiveNodeByCode(code, rootInstanceId);
 	}
 
 	@SuppressWarnings("only test")
 	public WorkFlowNodeEntity loadChildActiveNodeByCode(String nodeCode, String taskId, String instanceId) {
-		WorkFlowInstanceEntity instanceEntity = config.mapper().loadParentInstance(taskId, instanceId);
-		return config.mapper().loadChildActiveNodeByCode(nodeCode, instanceEntity.getInstanceId(), instanceEntity.getRootInstanceId());
+		WorkFlowInstanceEntity instanceEntity = config.getMapper().loadParentInstance(taskId, instanceId);
+		return config.getMapper().loadChildActiveNodeByCode(nodeCode, instanceEntity.getInstanceId(), instanceEntity.getRootInstanceId());
 	}
 }

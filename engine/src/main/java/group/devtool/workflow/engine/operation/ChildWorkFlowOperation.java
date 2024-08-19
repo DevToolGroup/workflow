@@ -5,9 +5,11 @@ import group.devtool.workflow.engine.WorkFlowDispatch;
 import group.devtool.workflow.engine.exception.OperationException;
 import group.devtool.workflow.engine.runtime.ChildWorkFlowNode;
 import group.devtool.workflow.engine.runtime.WorkFlowInstance;
+import lombok.Getter;
 
 import java.util.List;
 
+@Getter
 public class ChildWorkFlowOperation implements WorkFlowOperation {
 
 	private final ChildWorkFlowNode node;

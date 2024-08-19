@@ -7,10 +7,12 @@ import group.devtool.workflow.engine.runtime.ChildWorkFlowInstance;
 import group.devtool.workflow.engine.runtime.ChildWorkFlowNode;
 import group.devtool.workflow.engine.runtime.WorkFlowInstance;
 import group.devtool.workflow.engine.runtime.WorkFlowNode;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class NextWorkFlowOperation implements WorkFlowOperation {
 
 	private final String rootInstanceId;

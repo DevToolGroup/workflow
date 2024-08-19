@@ -94,4 +94,10 @@ public interface WorkFlowMapper {
 																							 @Param("rootInstanceId") String rootInstanceId);
 
 	WorkFlowInstanceEntity loadParentInstance(@Param("parentTaskId") String parentTaskId, @Param("instanceId") String instanceId);
+
+	List<RetryWorkFlowOperationEntity> loadFailOperation(@Param("lastId") Long lastId);
+
+	void batchSave(@Param("entities") List<RetryWorkFlowOperationEntity> entities);
+
+	void updateStatus(@Param("code") String code, @Param("status") Integer status, @Param("beforeStatus") Integer beforeStatus);
 }

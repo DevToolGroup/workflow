@@ -7,7 +7,6 @@
 package group.devtool.workflow.engine;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,11 +17,6 @@ public interface WorkFlowContext {
 	String USER = "USER";
 
 	Object lookup(String name);
-
-	/**
-	 * @return 返回流程流转过程中所有的变量数据，按照添加的顺序排列
-	 */
-	List<WorkFlowVariable> getVariables();
 
 	/**
 	 * @return 返回流程实例流转过程中所有的变量，重名的变量按照出现顺序，后边的覆盖前边的。

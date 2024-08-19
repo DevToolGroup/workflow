@@ -24,17 +24,17 @@ public class WorkFlowSchedulerRepository {
 	}
 
 	public void addTask(WorkFlowDelayItemEntity item) {
-		WorkFlowMapper mapper = config.mapper();
+		WorkFlowMapper mapper = config.getMapper();
 		mapper.addDelayTask(item);
 	}
 
 	public List<WorkFlowDelayItemEntity> loadTask() {
-		WorkFlowMapper mapper = config.mapper();
+		WorkFlowMapper mapper = config.getMapper();
 		return mapper.loadDelayTask(System.currentTimeMillis());
 	}
 
 	public void setDelaySuccess(WorkFlowDelayItemEntity item) {
-		WorkFlowMapper mapper = config.mapper();
+		WorkFlowMapper mapper = config.getMapper();
 		mapper.setDelaySuccess(item.getItemId(), item.getRootInstanceId());
 	}
 }

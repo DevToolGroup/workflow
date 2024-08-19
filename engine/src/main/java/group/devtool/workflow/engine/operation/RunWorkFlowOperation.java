@@ -2,10 +2,11 @@ package group.devtool.workflow.engine.operation;
 
 import group.devtool.workflow.engine.*;
 import group.devtool.workflow.engine.exception.OperationException;
-import group.devtool.workflow.engine.runtime.WorkFlowInstance;
 import group.devtool.workflow.engine.runtime.WorkFlowNode;
 import group.devtool.workflow.engine.runtime.WorkFlowTask;
+import lombok.Getter;
 
+@Getter
 public class RunWorkFlowOperation implements WorkFlowOperation {
 
 	private final String rootInstanceId;

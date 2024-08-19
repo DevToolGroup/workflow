@@ -11,24 +11,24 @@ package group.devtool.workflow.engine;
  */
 public interface WorkFlowIdSupplier {
 
-  /**
-   * @return 实例ID
-   */
-  String getInstanceId() ;
+    /**
+     * @return 实例ID
+     */
+    String getInstanceId();
 
-	/**
-	 * @return 节点ID
-	 */
-	String getNodeId();
+    /**
+     * @return 节点ID
+     */
+    String getNodeId();
 
-  /**
-   * @return 任务ID
-   */
-  String getTaskId() ;
+    /**
+     * @return 任务ID
+     */
+    String getTaskId();
 
-	/**
-	 * @return 自增ID
-	 */
-	String getId();
+    /**
+     * @return 自增ID
+     */
+    String getId();
 
 }

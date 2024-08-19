@@ -1,6 +1,5 @@
 package group.devtool.workflow.engine;
 
-import group.devtool.workflow.engine.operation.RetryWorkFlowOperation;
 import group.devtool.workflow.engine.operation.WorkFlowOperation;
 
 
@@ -9,21 +8,25 @@ import group.devtool.workflow.engine.operation.WorkFlowOperation;
  */
 public interface WorkFlowRetryService {
 
-	/**
-	 * 添加流程操作
-	 * @param operations 流程操作
-	 */
-	void addOperation(WorkFlowOperation... operations);
+    /**
+     * 添加流程操作
+     *
+     * @param operations 流程操作
+     */
+    void addOperation(WorkFlowOperation... operations);
 
-	/**
-	 * 更新流程操作
-	 * @param retryOperation 流程操作
-	 */
-	void changeOperation(RetryWorkFlowOperation retryOperation);
+    /**
+     * 流程操作状态修改
+     *
+     * @param code          流程操作code
+     * @param status       流程操作状态
+     * @param beforeStatus 流程操作状态
+     */
+    void changeOperation(String code, Integer status, Integer beforeStatus);
 
-	/**
-	 * 重试流程操作
-	 */
-	void retryOperation();
+    /**
+     * 重试流程操作
+     */
+    void retryOperation();
 
 }

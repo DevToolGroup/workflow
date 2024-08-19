@@ -15,9 +15,6 @@ import java.util.UUID;
  */
 public class WorkFlowIdSupplierImpl implements WorkFlowIdSupplier {
 
-	public WorkFlowIdSupplierImpl() {
-	}
-
 	@Override
 	public String getInstanceId() {
 		return UUID.randomUUID().toString();
@@ -30,6 +27,11 @@ public class WorkFlowIdSupplierImpl implements WorkFlowIdSupplier {
 
 	@Override
 	public String getTaskId() {
+		return UUID.randomUUID().toString();
+	}
+
+	@Override
+	public String getId() {
 		return UUID.randomUUID().toString();
 	}
 

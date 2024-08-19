@@ -5,10 +5,12 @@ import group.devtool.workflow.engine.definition.WorkFlowNodeDefinition;
 import group.devtool.workflow.engine.exception.OperationException;
 import group.devtool.workflow.engine.runtime.WorkFlowInstance;
 import group.devtool.workflow.engine.runtime.WorkFlowNode;
+import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class StartWorkFlowOperation implements WorkFlowOperation {
 
 	private final String rootInstanceId;
