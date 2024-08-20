@@ -107,4 +107,5 @@ public class WorkFlowConfiguration {
   public void setRetry(WorkFlowRetryService retry) {
     this.retry = retry;
   }
+
 }

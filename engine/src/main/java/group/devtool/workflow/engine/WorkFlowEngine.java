@@ -144,7 +144,6 @@ public final class WorkFlowEngine {
 	public void stop(String instanceId) {
 		WorkFlowContextImpl ctx = config.service().getContext(instanceId);
 		dispatch.dispatch(WorkFlowOperation.ofStop(instanceId, ctx));
-
 	}
 
 }

@@ -464,9 +464,39 @@
         order by id desc
     </select>
 
+    <select id="getOperation" resultType="group.devtool.workflow.impl.entity.RetryWorkFlowOperationEntity">
+        select
+            *
+        from
+            wf_operation
+        where
+            code = #{code}
+    </select>
+
+    <select id="loadCallback" resultType="group.devtool.workflow.impl.entity.WorkFlowCallbackPayloadEntity">
+        select
+            *
+        from
+            wf_callback_queue
+        where
+            status in (0, -1)
+        order by id asc
+        limit 20
+    </select>
+
+    <select id="getFailCallback" resultType="group.devtool.workflow.impl.entity.WorkFlowCallbackPayloadEntity">
+        select
+            id, code, status, root_instance_id
+        from
+            wf_callback_queue
+        where
+            root_instance_id = #{rootInstanceId}
+            and status = -1
+    </select>
+
 
     <insert id="batchSave">
-        insert into wf_operation (code, status, root_instance_id, type, instance_id, parameters, task_id, node_id, instance_ids)
+        insert into wf_operation (code, status, root_instance_id, type, instance_id, context, task_id, node_id, instance_ids)
         values
             <foreach collection="entities" separator="," item="entity" open="(" close=")">
                 #{entity.code},
@@ -474,18 +504,40 @@
                 #{entity.rootInstanceId},
                 #{entity.type},
                 #{entity.instanceId},
-                #{entity.parameters},
+                #{entity.context},
                 #{entity.taskId},
                 #{entity.nodeId},
                 #{entity.instanceIds}
             </foreach>
     </insert>
 
+    <insert id="saveCallback">
+        insert into wf_callback_queue (code, event, status, root_instance_id, context)
+        values (
+            #{payload.code},
+            #{payload.event},
+            #{payload.status},
+            #{payload.rootInstanceId},
+            #{payload.context}
+        )
+    </insert>
+
     <update id="updateStatus">
         update
             wf_operation
-        set status = #{status}
-        where code = #{code} and status = #{beforeStatus}
+        set
+            status = #{status}
+        where
+            code = #{code}
+    </update>
+
+    <update id="changeCallback">
+        update
+            wf_callback_queue
+        set
+            status = #{status}
+        where
+            code = #{code}
     </update>
 
 </mapper>

@@ -3,12 +3,10 @@ package group.devtool.workflow.engine;
 import group.devtool.workflow.engine.exception.OperationException;
 import group.devtool.workflow.engine.operation.RetryWorkFlowOperation;
 import group.devtool.workflow.engine.operation.WorkFlowOperation;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Arrays;
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * 调度流程操作
@@ -21,9 +19,24 @@ public interface WorkFlowDispatch {
 
     WorkFlowConfiguration getConfig();
 
+    /**
+     * 流程操作持久化，为后续重试准备。
+     *
+     * 注意：如果采用重试，注意该方法在事务内，不需要额外的开启事务
+     *
+     * @param operations 流程操作
+     */
     void addOperation(WorkFlowOperation... operations);
 
-    void addCallback(WorkFlowCallback.WorkFlowEvent workFlowEvent, WorkFlowContextImpl context);
+    /**
+     * 回调持久化，为后续重试准备。
+     *
+     * 注意：如果采用重试，注意该方法在事务内，不需要额外的开启事务
+     *
+     * @param event   时间类型
+     * @param context 上下文
+     */
+    void addCallback(WorkFlowCallback.WorkFlowEvent event, WorkFlowContextImpl context);
 
 
     @Slf4j
@@ -31,29 +44,13 @@ public interface WorkFlowDispatch {
 
         private final WorkFlowConfiguration configuration;
 
-        private final Deque<WorkFlowOperation> operations;
-
-        private final Deque<WorkFlowCallbackPayload> callbacks;
-
         protected AbstractWorkFlowDispatch(WorkFlowConfiguration configuration) {
             this.configuration = configuration;
-            operations = new LinkedList<>();
-            callbacks = new LinkedList<>();
         }
 
         @Override
         public WorkFlowConfiguration getConfig() {
             return configuration;
-        }
-
-        @Override
-        public void addOperation(WorkFlowOperation... ops) {
-            operations.addAll(Arrays.asList(ops));
-        }
-
-        @Override
-        public void addCallback(WorkFlowCallback.WorkFlowEvent event, WorkFlowContextImpl context) {
-            callbacks.add(new WorkFlowCallbackPayload(event, context));
         }
 
         protected void doDispatchBefore() {
@@ -67,28 +64,9 @@ public interface WorkFlowDispatch {
             doDispatchAfter();
         }
 
-        private void doDispatch() {
-            WorkFlowTransaction dbTransaction = getConfig().dbTransaction();
-            while (!operations.isEmpty()) {
-                WorkFlowOperation operation = operations.pop();
-                dbTransaction.doInTransaction(() -> {
-                    try {
-                        doOperationBefore(operation);
-                        operation.operate(this);
-                        doOperationAfter(operation);
-                    } catch (OperationException e) {
-                        log.error("流程操作执行异常. 异常信息: ", e);
-                        doOperationException(operation);
-                    }
-                    return null;
-                });
-            }
-        }
+        protected abstract void doDispatch();
 
-        public void retryDispatch(WorkFlowOperation retryOperation) {
-            operations.add(retryOperation);
-            doDispatch();
-        }
+        public abstract void retryDispatch(WorkFlowOperation retryOperation);
 
         protected void doOperationBefore(WorkFlowOperation operation) {
             // do nothing
@@ -108,12 +86,52 @@ public interface WorkFlowDispatch {
 
     }
 
+    @Slf4j
     class DefaultWorkFlowDispatch extends AbstractWorkFlowDispatch {
+        private final LinkedBlockingDeque<WorkFlowOperation> operations;
 
         public DefaultWorkFlowDispatch(WorkFlowConfiguration configuration) {
             super(configuration);
+            operations = new LinkedBlockingDeque<>();
+
         }
 
+        @Override
+        public void addOperation(WorkFlowOperation... ops) {
+            operations.addAll(Arrays.asList(ops));
+        }
+
+        @Override
+        protected void doDispatch() {
+            WorkFlowConfiguration config = super.getConfig();
+
+            WorkFlowTransaction dbTransaction = config.dbTransaction();
+            while (!operations.isEmpty()) {
+                WorkFlowOperation operation = operations.pop();
+                dbTransaction.doInTransaction(() -> {
+                    try {
+                        doOperationBefore(operation);
+                        operation.operate(this);
+                        doOperationAfter(operation);
+                    } catch (OperationException e) {
+                        log.error("流程操作执行异常. 异常信息: ", e);
+                        doOperationException(operation);
+                    }
+                    return null;
+                });
+            }
+        }
+
+        @Override
+        public void retryDispatch(WorkFlowOperation retryOperation) {
+            operations.add(retryOperation);
+            doDispatch();
+        }
+
+        @Override
+        public void addCallback(WorkFlowCallback.WorkFlowEvent event, WorkFlowContextImpl context) {
+            super.getConfig().callback().callback(event, context);
+        }
     }
 
     @Slf4j
@@ -135,49 +153,45 @@ public interface WorkFlowDispatch {
         }
 
         @Override
+        protected void doDispatch() {
+            this.delegate.doDispatch();
+        }
+
+        @Override
+        public void retryDispatch(WorkFlowOperation retryOperation) {
+            this.delegate.retryDispatch(retryOperation);
+        }
+
+        @Override
         protected void doOperationBefore(WorkFlowOperation operation) {
             RetryWorkFlowOperation retryOperation = (RetryWorkFlowOperation) operation;
             retryOperation.setRunning();
-            config.retry().changeOperation(retryOperation.getCode(), retryOperation.getStatus(), 0);
+            config.retry().changeOperation(retryOperation.getCode(), retryOperation.getStatus());
         }
 
         @Override
         protected void doOperationAfter(WorkFlowOperation operation) {
             RetryWorkFlowOperation retryOperation = (RetryWorkFlowOperation) operation;
             retryOperation.setSuccess();
-            config.retry().changeOperation(retryOperation.getCode(), retryOperation.getStatus(), 2);
+            config.retry().changeOperation(retryOperation.getCode(), retryOperation.getStatus());
         }
 
         @Override
         protected void doOperationException(WorkFlowOperation operation) {
             RetryWorkFlowOperation retryOperation = (RetryWorkFlowOperation) operation;
             retryOperation.setFail();
-            config.retry().changeOperation(retryOperation.getCode(), retryOperation.getStatus(), 0);
+            config.retry().changeOperation(retryOperation.getCode(), retryOperation.getStatus());
         }
 
         @Override
         public void addOperation(WorkFlowOperation... ops) {
-            config.retry().addOperation(of(ops));
+            config.retry().addOperation(ops);
             this.delegate.addOperation(ops);
         }
 
-        public WorkFlowOperation[] of(WorkFlowOperation... operations) {
-            WorkFlowIdSupplier supplier = config.idSupplier();
-            return Arrays.stream(operations)
-                    .map(op -> new RetryWorkFlowOperation(op, supplier.getId()))
-                    .toArray(WorkFlowOperation[]::new);
-        }
-    }
-
-    @Getter
-    class WorkFlowCallbackPayload {
-        private final WorkFlowCallback.WorkFlowEvent event;
-
-        private final WorkFlowContextImpl context;
-
-        public WorkFlowCallbackPayload(WorkFlowCallback.WorkFlowEvent event, WorkFlowContextImpl context) {
-            this.event = event;
-            this.context = context;
+        @Override
+        public void addCallback(WorkFlowCallback.WorkFlowEvent event, WorkFlowContextImpl context) {
+            config.retry().addCallback(event, context);
         }
     }
 }

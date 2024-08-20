@@ -27,8 +27,8 @@ public interface WorkFlowIdSupplier {
     String getTaskId();
 
     /**
-     * @return 自增ID
+     * @return 唯一编码
      */
-    String getId();
+    String getCode();
 
 }

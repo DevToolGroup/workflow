@@ -7,7 +7,7 @@ public class RetryWorkFlowOperationEntity {
 
     private Long id;
 
-    private String key;
+    private String code;
 
     private Integer status;
 
@@ -17,13 +17,13 @@ public class RetryWorkFlowOperationEntity {
 
     private String instanceId;
 
-    private String parameters;
+    private String context;
 
     private String taskId;
 
     private String nodeId;
 
-    private String instanceIds;
+    private String children;
 
 
 }

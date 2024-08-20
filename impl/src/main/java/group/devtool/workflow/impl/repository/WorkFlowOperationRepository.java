@@ -5,6 +5,7 @@ import group.devtool.workflow.impl.entity.RetryWorkFlowOperationEntity;
 import group.devtool.workflow.impl.mapper.WorkFlowMapper;
 
 import java.util.List;
+import java.util.Objects;
 
 public class WorkFlowOperationRepository {
 
@@ -24,8 +25,14 @@ public class WorkFlowOperationRepository {
         mapper.batchSave(entities);
     }
 
-    public void updateStatus(String code, Integer status, Integer beforeStatus) {
+    public void updateStatus(String code, Integer status) {
         WorkFlowMapper mapper = config.getMapper();
-        mapper.updateStatus(code, status, beforeStatus);
+        mapper.updateStatus(code, status);
+    }
+
+    public boolean notExistOperation(String code) {
+        WorkFlowMapper mapper = config.getMapper();
+        RetryWorkFlowOperationEntity entity = mapper.getOperation(code);
+        return Objects.isNull(entity);
     }
 }

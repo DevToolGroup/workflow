@@ -15,18 +15,18 @@ public interface WorkFlowRetryService {
      */
     void addOperation(WorkFlowOperation... operations);
 
+    void addCallback(WorkFlowCallback.WorkFlowEvent event, WorkFlowContextImpl context);
+
     /**
      * 流程操作状态修改
      *
      * @param code          流程操作code
      * @param status       流程操作状态
-     * @param beforeStatus 流程操作状态
      */
-    void changeOperation(String code, Integer status, Integer beforeStatus);
+    void changeOperation(String code, Integer status);
 
     /**
      * 重试流程操作
      */
     void retryOperation();
-
 }

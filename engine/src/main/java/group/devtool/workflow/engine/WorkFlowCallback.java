@@ -14,21 +14,14 @@ public interface WorkFlowCallback {
   class EmptyWorkFlowCallback implements WorkFlowCallback {
 
     @Override
-    public void doCallback(WorkFlowEvent event, WorkFlowContext context) {
+    public void callback(WorkFlowEvent event, WorkFlowContext context) {
       // do nothing
     }
 
   }
 
-  default void callback(WorkFlowEvent event, WorkFlowContext context) {
-    try {
-      doCallback(event, context);
-    } catch (Exception e) {
-      // do nothing
-    }
-  }
+  void callback(WorkFlowEvent event, WorkFlowContext context);
 
-  void doCallback(WorkFlowEvent event, WorkFlowContext context);
 
   enum WorkFlowEvent {
 
@@ -42,7 +35,6 @@ public interface WorkFlowCallback {
 
     STOP,  // 流程停止事件
 
-    EXCEPTION,
   }
 
 }

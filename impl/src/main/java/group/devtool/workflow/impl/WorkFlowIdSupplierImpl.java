@@ -31,7 +31,7 @@ public class WorkFlowIdSupplierImpl implements WorkFlowIdSupplier {
 	}
 
 	@Override
-	public String getId() {
+	public String getCode() {
 		return UUID.randomUUID().toString();
 	}
 

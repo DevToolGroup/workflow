@@ -37,7 +37,7 @@ public class RetryWorkFlowOperation implements WorkFlowOperation {
 	}
 
 	public void setRunning() {
-		this.status = 2;
+		this.status = 0;
 	}
 
 	public void setSuccess() {

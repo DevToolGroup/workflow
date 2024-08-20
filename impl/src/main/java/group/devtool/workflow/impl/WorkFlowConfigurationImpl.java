@@ -38,6 +38,8 @@ public final class WorkFlowConfigurationImpl extends WorkFlowConfiguration {
 
   private WorkFlowOperationRepository operationRepository;
 
+  private WorkFlowCallbackRepository callbackRepository;
+
   public WorkFlowDefinitionRepository definitionRepository() {
     if (null == dbTransaction()) {
       throw new ConfigurationException(ERROR);
@@ -122,5 +124,13 @@ public final class WorkFlowConfigurationImpl extends WorkFlowConfiguration {
 
   public void setOperationRepository(WorkFlowOperationRepository operationRepository) {
     this.operationRepository = operationRepository;
+  }
+
+  public WorkFlowCallbackRepository callbackRepository() {
+    return callbackRepository;
+  }
+
+  public void setCallbackRepository(WorkFlowCallbackRepository callbackRepository) {
+    this.callbackRepository = callbackRepository;
   }
 }

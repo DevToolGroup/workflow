@@ -99,5 +99,15 @@ public interface WorkFlowMapper {
 
 	void batchSave(@Param("entities") List<RetryWorkFlowOperationEntity> entities);
 
-	void updateStatus(@Param("code") String code, @Param("status") Integer status, @Param("beforeStatus") Integer beforeStatus);
+	void updateStatus(@Param("code") String code, @Param("status") Integer status);
+
+    RetryWorkFlowOperationEntity getOperation(@Param("code") String code);
+
+	List<WorkFlowCallbackPayloadEntity> loadCallback();
+
+	void changeCallback(@Param("code") String code, @Param("status") Integer status);
+
+	void saveCallback(@Param("payload") WorkFlowCallbackPayloadEntity payload);
+
+	WorkFlowCallbackPayloadEntity getFailCallback(@Param("rootInstanceId") String rootInstanceId);
 }
